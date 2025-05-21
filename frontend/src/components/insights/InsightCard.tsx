@@ -29,7 +29,7 @@ const InsightCard: React.FC<InsightCardProps> = ({ insight, onClick }) => {
           alt={title}
           className="h-40 w-full object-cover"
         />
-        <div className="absolute top-2 right-2 flex">
+        {/* <div className="absolute top-2 right-2 flex">
           <div className="badge badge-primary mr-1">{platform || category}</div>
           {actionable && (
             <div className="badge badge-success gap-1">
@@ -37,7 +37,7 @@ const InsightCard: React.FC<InsightCardProps> = ({ insight, onClick }) => {
               Actionable
             </div>
           )}
-        </div>
+        </div> */}
       </figure>
       <div className="card-body">
         <h2 className="card-title">{title}</h2>
@@ -51,12 +51,12 @@ const InsightCard: React.FC<InsightCardProps> = ({ insight, onClick }) => {
           <span>5 min read</span>
         </div>
         
-        {trend && (
+        {/* {trend && (
           <div className="flex items-center mt-2 text-success text-sm">
             <TrendingUp size={16} className="mr-1" />
             <span className="font-medium">{trend}</span>
           </div>
-        )}
+        )} */}
         
         <div className="card-actions justify-end mt-4">
           <button 

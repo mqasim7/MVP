@@ -41,19 +41,19 @@ export interface Persona {
   platforms?: string[];
 }
 
-// Insights and analytics
 export interface Insight {
-  id: number;
-  title: string;
-  description: string;
-  date: string;
-  platform?: string;
-  trend?: string;
-  image?: string;
-  actionable: boolean;
-  category: 'Content' | 'Audience' | 'Engagement' | 'Conversion';
-  tags?: string[];
-}
+    id: number;
+    title: string;
+    description: string;
+    date: string;
+    platform?: string;
+    trend?: string;
+    image?: string;
+    actionable: boolean;
+    category: 'Content' | 'Audience' | 'Engagement' | 'Conversion';
+    tags?: string[];
+    content?: string; // HTML content for detailed view
+  }
 
 export interface KPI {
   id: number;
