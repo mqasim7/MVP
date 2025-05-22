@@ -69,14 +69,14 @@ const DashboardHome: React.FC = () => {
       </div>
       
       {/* Key Performance Indicators */}
-      <div className="mt-6">
+      {/* <div className="mt-6">
         <h2 className="text-lg font-medium mb-4">Key Metrics</h2>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {kpiData.map((kpi) => (
             <KpiCard key={kpi.id} kpi={kpi} />
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Placeholder for the rest of the dashboard */}
       <div className="mt-8 text-center py-20 bg-base-200 rounded-lg">
