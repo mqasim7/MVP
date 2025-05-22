@@ -137,7 +137,7 @@ const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
         // If script is already loaded, process the embed manually
         if (window.tiktokEmbed && typeof window.tiktokEmbed.reloadEmbeds === 'function') {
           setTimeout(() => {
-            window.tiktokEmbed.reloadEmbeds();
+            // window.tiktokEmbed.reloadEmbeds();
             console.log('TikTok embed reloaded successfully');
             setLoading(false);
           }, 500);
