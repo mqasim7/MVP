@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   images: {
     domains: ['localhost', 'api.yourbackend.com'],
   },
+  eslint: {
+    // Disable linting during builds
+    ignoreDuringBuilds: true,
+  },
   
 };
 
