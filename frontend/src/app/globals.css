@@ -3,6 +3,88 @@
 @plugin "daisyui" {
   themes: corporate;
 }
+
+:root {
+  /* Main colors */
+  --color-primary: #EFFF00;
+  /* Neon yellow */
+  --color-primary-dark: #D6E600;
+  /* Slightly darker shade for hover states */
+  --color-secondary: #00E474;
+  /* Bright green accent */
+
+  /* Background colors */
+  /* --color-background: #000000; */
+  /* Pure black background */
+  /* --color-card-bg: #0E0E0E; */
+  /* Slightly lighter black for cards */
+  --color-input-bg: #1A1A1A;
+  /* Dark gray for input fields */
+
+  /* Text colors */
+  --color-text: #000000;
+  /* White text */
+  --color-text-secondary: #BBBBBB;
+  /* Light gray text */
+
+  /* Border colors */
+  --color-border: #2A2A2A;
+  /* Dark gray borders */
+
+  /* DaisyUI theme variables */
+  --p: 65 100% 50%;
+  /* Primary (neon yellow) in HSL */
+  --pc: 0 0% 0%;
+  /* Primary content (black) for contrast with the bright yellow */
+  --s: 156 100% 45%;
+  /* Secondary (green) */
+  --sc: 0 0% 0%;
+  /* Secondary content (black) */
+  --b1: 0 0% 0%;
+  /* Base color (black) */
+  --b2: 0 0% 5%;
+  /* Lighter base */
+  --b3: 0 0% 10%;
+  /* Even lighter base */
+  --bc: 0 0% 100%;
+  /* Base content (white) */
+  --n: 0 0% 15%;
+  /* Neutral (dark gray) */
+  --nc: 0 0% 100%;
+  /* Neutral content (white) */
+}
+
+html,
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+/* Card styling */
+.card {
+  background-color: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+}
+
+/* Button styling */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: black;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-dark);
+}
+
+/* Input styling */
+input,
+select,
+textarea {
+  background-color: var(--color-input-bg);
+  border-color: var(--color-border);
+  color: white;
+}
+
 /* Custom iframe handling */
 .instagram-embed {
   width: 100% !important;

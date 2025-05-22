@@ -21,21 +21,17 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto bg-black text-white rounded-lg overflow-hidden shadow-xl">
+    <div className="w-full max-w-md mx-auto bg-black border border-[#2A2A2A] text-white rounded-lg overflow-hidden shadow-xl">
       {/* Header Section */}
-      <div className="relative px-8 pt-10 pb-8 text-center border-b border-white/10">
-        {/* Your logo would go here */}
-        {/* <div className="mx-auto mb-4 w-20 h-20 bg-white/5 rounded-full flex items-center justify-center">
-          <span className="text-2xl font-bold"></span>
-        </div> */}
-        <h1 className="text-2xl font-bold tracking-wider">SIGN IN</h1>
-      </div>
+      {/* <div className="relative px-8 pt-10 pb-8 text-center border-b border-[#2A2A2A]">
+        <h1 className="text-3xl font-bold tracking-wider text-[#EFFF00]">SIGN IN</h1>
+      </div> */}
 
       {/* Form Section */}
       <div className="p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="bg-red-900/50 border border-red-500 text-white px-4 py-3 rounded-md text-sm mb-6">
+            <div className="bg-red-900/30 border border-red-500 text-white px-4 py-3 rounded-md text-sm mb-6">
               <div className="flex">
                 <div className="flex-shrink-0">
                   <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -58,7 +54,7 @@ const LoginForm: React.FC = () => {
               <input
                 type="email"
                 placeholder="your@email.com"
-                className="block w-full pl-10 pr-3 py-3 bg-white/5 border border-white/20 rounded-md focus:ring-1 focus:ring-white focus:border-white text-white placeholder-white/40"
+                className="block w-full pl-10 pr-3 py-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-md focus:ring-1 focus:ring-[#EFFF00] focus:border-[#EFFF00] text-white placeholder-white/40"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -68,12 +64,12 @@ const LoginForm: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <div className="flex justify-between items-center">
+            {/* <div className="flex justify-between items-center">
               <label className="block text-sm font-medium tracking-wide uppercase">Password</label>
-              <a href="#" className="text-xs text-white/60 hover:text-white underline-offset-4 hover:underline">
+              <a href="#" className="text-xs text-[#EFFF00] hover:text-[#EFFF00]/80 underline-offset-4 hover:underline">
                 Forgot password?
               </a>
-            </div>
+            </div> */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Lock className="h-5 w-5 text-white/50" />
@@ -81,7 +77,7 @@ const LoginForm: React.FC = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
-                className="block w-full pl-10 pr-10 py-3 bg-white/5 border border-white/20 rounded-md focus:ring-1 focus:ring-white focus:border-white text-white placeholder-white/40"
+                className="block w-full pl-10 pr-10 py-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-md focus:ring-1 focus:ring-[#EFFF00] focus:border-[#EFFF00] text-white placeholder-white/40"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -102,8 +98,10 @@ const LoginForm: React.FC = () => {
           <div className="flex items-center">
             <input
               type="checkbox"
-              className="h-4 w-4 border-white/30 rounded bg-white/5 focus:ring-white text-white"
+              className="h-4 w-4 border-[#2A2A2A] rounded bg-[#1A1A1A] focus:ring-[#EFFF00] text-[#EFFF00]"
               id="remember-me"
+            //   checked={rememberMe}
+            //   onChange={() => setRememberMe(!rememberMe)}
             />
             <label htmlFor="remember-me" className="ml-2 block text-sm text-white/70">
               Remember me
@@ -113,7 +111,7 @@ const LoginForm: React.FC = () => {
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-black bg-white hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white/70 uppercase tracking-wider transition-colors"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-black bg-[#EFFF00] hover:bg-[#D6E600] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#EFFF00] uppercase tracking-wider transition-colors"
               disabled={isLoading}
             >
               {isLoading ? (

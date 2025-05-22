@@ -1,3 +1,4 @@
+// backend/src/index.js (updated)
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -12,6 +13,7 @@ const contentRoutes = require('./routes/content.routes');
 const personaRoutes = require('./routes/persona.routes');
 const feedRoutes = require('./routes/feed.routes');
 const insightsRoutes = require('./routes/insights.routes');
+const companyRoutes = require('./routes/company.routes'); // New
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,10 +38,20 @@ app.use('/api/content', contentRoutes);
 app.use('/api/personas', personaRoutes);
 app.use('/api/feed', feedRoutes);
 app.use('/api/insights', insightsRoutes);
+app.use('/api/companies', companyRoutes); // New
 
 // Default route
 app.get('/', (req, res) => {
   res.json({ message: "Welcome to Dashboard API" });
+});
+
+// Health check route
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
 });
 
 // Error handling middleware

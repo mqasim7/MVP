@@ -10,18 +10,33 @@ const createDatabaseQuery = `CREATE DATABASE IF NOT EXISTS ${dbConfig.DB}`;
 const useDatabase = `USE ${dbConfig.DB}`;
 
 const createTablesQueries = [
-  // Users table
+  // Companies table (must come before users table due to foreign key)
+  `CREATE TABLE IF NOT EXISTS companies (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    industry VARCHAR(100),
+    website VARCHAR(255),
+    logo_url VARCHAR(255),
+    status ENUM('active', 'inactive') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  )`,
+
+  // Users table (updated with company_id)
   `CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role ENUM('admin', 'editor', 'viewer') DEFAULT 'viewer',
-    status ENUM('active', 'inactive', 'pending') DEFAULT 'pending',
+    status ENUM('active', 'inactive', 'pending', 'deleted') DEFAULT 'pending',
     department VARCHAR(100),
+    company_id INT,
     last_login DATETIME,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL
   )`,
 
   // Content table
@@ -108,20 +123,42 @@ const createTablesQueries = [
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
+    content TEXT,
     date DATE NOT NULL,
     platform VARCHAR(100),
     trend VARCHAR(100),
     image_url VARCHAR(255),
     actionable BOOLEAN DEFAULT FALSE,
     category ENUM('Content', 'Audience', 'Engagement', 'Conversion'),
+    author_id INT,
+    tags JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (author_id) REFERENCES users(id)
   )`
 ];
 
 // Initial data to seed the database
 const seedData = async (connection) => {
   try {
+    // Create default company first
+    const [defaultCompanyExists] = await connection.query(
+      'SELECT * FROM companies WHERE name = ?',
+      ['Lululemon']
+    );
+    
+    let defaultCompanyId;
+    if (defaultCompanyExists.length === 0) {
+      const [result] = await connection.query(
+        'INSERT INTO companies (name, description, industry, website, status) VALUES (?, ?, ?, ?, ?)',
+        ['Lululemon', 'Athletic apparel and accessories company', 'Retail/Fashion', 'https://lululemon.com', 'active']
+      );
+      defaultCompanyId = result.insertId;
+      logger.info('Default company created');
+    } else {
+      defaultCompanyId = defaultCompanyExists[0].id;
+    }
+    
     // Check if admin user exists
     const [adminExists] = await connection.query(
       'SELECT * FROM users WHERE email = ?',
@@ -134,8 +171,8 @@ const seedData = async (connection) => {
       const hashedPassword = await bcrypt.hash('admin123', salt);
       
       await connection.query(
-        'INSERT INTO users (name, email, password, role, status, department) VALUES (?, ?, ?, ?, ?, ?)',
-        ['Admin User', 'admin@lululemon.com', hashedPassword, 'admin', 'active', 'IT']
+        'INSERT INTO users (name, email, password, role, status, department, company_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        ['Admin User', 'admin@lululemon.com', hashedPassword, 'admin', 'active', 'IT', defaultCompanyId]
       );
       
       logger.info('Admin user created');
@@ -237,6 +274,48 @@ const seedData = async (connection) => {
       logger.info('Initial persona created');
     }
     
+    // Seed sample insights
+    const [insightExists] = await connection.query(
+      'SELECT * FROM insights WHERE title = ?',
+      ['Gen Z Content Trends Q2 2025']
+    );
+    
+    if (insightExists.length === 0) {
+      const sampleInsights = [
+        {
+          title: 'Gen Z Content Trends Q2 2025',
+          description: 'Analysis of top-performing content patterns across platforms',
+          content: '<h2>Key Findings</h2><p>Gen Z audiences are increasingly engaging with authentic, unfiltered content that showcases real experiences...</p>',
+          date: '2025-05-15',
+          platform: 'Cross-platform',
+          trend: '+27% engagement vs. Q1',
+          actionable: true,
+          category: 'Content',
+          tags: JSON.stringify(['gen-z', 'trends', 'social-media'])
+        },
+        {
+          title: 'Athleticwear Video Performance',
+          description: 'How video product demos are outperforming static images',
+          content: '<h2>Video Performance Metrics</h2><p>Product demonstration videos show 45% higher engagement rates...</p>',
+          date: '2025-05-12',
+          platform: 'Instagram',
+          trend: '+45% view completion rate',
+          actionable: true,
+          category: 'Content',
+          tags: JSON.stringify(['video', 'product-demo', 'instagram'])
+        }
+      ];
+      
+      for (const insight of sampleInsights) {
+        await connection.query(
+          'INSERT INTO insights (title, description, content, date, platform, trend, actionable, category, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [insight.title, insight.description, insight.content, insight.date, insight.platform, insight.trend, insight.actionable, insight.category, insight.tags]
+        );
+      }
+      
+      logger.info('Sample insights created');
+    }
+    
   } catch (error) {
     logger.error(`Error seeding database: ${error.message}`);
     throw error;
@@ -258,7 +337,6 @@ async function setup() {
     logger.info('Connected to MySQL server');
     
     // Create database if it doesn't exist
-    // Using query() instead of execute() for DDL statements
     await connection.query(createDatabaseQuery);
     logger.info(`Database ${dbConfig.DB} created or already exists`);
     

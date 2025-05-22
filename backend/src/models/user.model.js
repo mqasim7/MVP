@@ -1,3 +1,4 @@
+// backend/src/models/user.model.js (updated)
 const db = require('./db');
 const bcrypt = require('bcryptjs');
 
@@ -8,8 +9,8 @@ const User = {
     const hashedPassword = await bcrypt.hash(user.password, salt);
     
     const sql = `
-      INSERT INTO users (name, email, password, role, department, status)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO users (name, email, password, role, department, status, company_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
     
     const params = [
@@ -18,7 +19,8 @@ const User = {
       hashedPassword,
       user.role || 'viewer',
       user.department,
-      user.status || 'pending'
+      user.status || 'pending',
+      user.company_id || null
     ];
     
     const result = await db.query(sql, params);
@@ -26,13 +28,24 @@ const User = {
   },
   
   findByEmail: async (email) => {
-    const sql = 'SELECT * FROM users WHERE email = ?';
+    const sql = `
+      SELECT u.*, c.name as company_name 
+      FROM users u
+      LEFT JOIN companies c ON u.company_id = c.id
+      WHERE u.email = ?
+    `;
     const results = await db.query(sql, [email]);
     return results.length ? results[0] : null;
   },
   
   findById: async (id) => {
-    const sql = 'SELECT id, name, email, role, status, department, last_login, created_at FROM users WHERE id = ?';
+    const sql = `
+      SELECT u.id, u.name, u.email, u.role, u.status, u.department, u.company_id, 
+             u.last_login, u.created_at, c.name as company_name
+      FROM users u
+      LEFT JOIN companies c ON u.company_id = c.id
+      WHERE u.id = ?
+    `;
     const results = await db.query(sql, [id]);
     return results.length ? results[0] : null;
   },
@@ -44,11 +57,26 @@ const User = {
   
   getAll: async () => {
     const sql = `
-      SELECT id, name, email, role, status, department, last_login, created_at 
-      FROM users
-      ORDER BY created_at DESC
+      SELECT u.id, u.name, u.email, u.role, u.status, u.department, u.company_id,
+             u.last_login, u.created_at, c.name as company_name
+      FROM users u
+      LEFT JOIN companies c ON u.company_id = c.id
+      WHERE u.status != 'deleted'
+      ORDER BY u.created_at DESC
     `;
     return await db.query(sql);
+  },
+  
+  getByCompany: async (companyId) => {
+    const sql = `
+      SELECT u.id, u.name, u.email, u.role, u.status, u.department, u.company_id,
+             u.last_login, u.created_at, c.name as company_name
+      FROM users u
+      LEFT JOIN companies c ON u.company_id = c.id
+      WHERE u.company_id = ? AND u.status != 'deleted'
+      ORDER BY u.created_at DESC
+    `;
+    return await db.query(sql, [companyId]);
   },
   
   update: async (id, userData) => {
@@ -83,13 +111,32 @@ const User = {
   },
   
   delete: async (id) => {
-    const sql = 'DELETE FROM users WHERE id = ?';
-    return await db.query(sql, [id]);
+    // Soft delete - mark as deleted instead of hard delete
+    const sql = 'UPDATE users SET status = ? WHERE id = ?';
+    return await db.query(sql, ['deleted', id]);
   },
   
   // Compare password for login
   comparePassword: async (enteredPassword, hashedPassword) => {
     return await bcrypt.compare(enteredPassword, hashedPassword);
+  },
+  
+  // Get users statistics by company
+  getCompanyUserStats: async (companyId) => {
+    const sql = `
+      SELECT 
+        COUNT(*) as total_users,
+        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_users,
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_users,
+        SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) as inactive_users,
+        SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) as admin_users,
+        SUM(CASE WHEN role = 'editor' THEN 1 ELSE 0 END) as editor_users,
+        SUM(CASE WHEN role = 'viewer' THEN 1 ELSE 0 END) as viewer_users
+      FROM users 
+      WHERE company_id = ? AND status != 'deleted'
+    `;
+    const results = await db.query(sql, [companyId]);
+    return results.length ? results[0] : null;
   }
 };
 

@@ -43,13 +43,13 @@ const InsightCard: React.FC<InsightCardProps> = ({ insight, onClick }) => {
         <h2 className="card-title">{title}</h2>
         <p className="text-sm opacity-70">{description}</p>
         
-        <div className="flex justify-between items-center text-xs mt-2 opacity-70">
+        {/* <div className="flex justify-between items-center text-xs mt-2 opacity-70">
           <div className="flex items-center">
             <Calendar size={14} className="mr-1" />
             <span>{date}</span>
           </div>
           <span>5 min read</span>
-        </div>
+        </div> */}
         
         {/* {trend && (
           <div className="flex items-center mt-2 text-success text-sm">

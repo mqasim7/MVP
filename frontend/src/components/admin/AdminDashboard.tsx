@@ -26,11 +26,18 @@ export default function AdminDashboard() {
     { id: 4, title: 'Product Launch: New Align Collection', type: 'Video', date: 'May 25, 2025', status: 'In Review' },
   ];
 
-  const alerts = [
-    { id: 1, type: 'warning', message: 'Content approval pending for 3 items', time: '2 hours ago' },
-    { id: 2, type: 'success', message: 'Weekly analytics report generated', time: '5 hours ago' },
-    { id: 3, type: 'info', message: 'New user registered: marketing@example.com', time: '1 day ago' },
-    { id: 4, type: 'error', message: 'API rate limit warning for Instagram feed', time: '2 days ago' },
+  const recentInsights = [
+    { id: 1, title: 'Gen Z Content Trends Q2 2025', category: 'Content', actionable: true, date: '2025-05-15' },
+    { id: 2, title: 'Athleticwear Video Performance', category: 'Content', actionable: true, date: '2025-05-12' },
+    { id: 3, title: 'Wellness Content Strategy', category: 'Audience', actionable: false, date: '2025-05-10' },
+    { id: 4, title: 'Sustainability Messaging Impact', category: 'Engagement', actionable: false, date: '2025-05-07' },
+  ];
+
+  const companies = [
+    { id: 1, name: 'Lululemon', users: 25, status: 'active', lastActivity: '2 hours ago' },
+    { id: 2, name: 'Nike Marketing', users: 12, status: 'active', lastActivity: '3 hours ago' },
+    { id: 3, name: 'Adidas Digital', users: 8, status: 'inactive', lastActivity: '2 days ago' },
+    { id: 4, name: 'Under Armour', users: 15, status: 'active', lastActivity: '1 day ago' },
   ];
 
   return (
@@ -115,40 +122,39 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* System Alerts */}
-        {/* <div className="card bg-base-100 shadow-xl">
+        <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="card-title">System Alerts</h2>
-              <button className="btn btn-ghost btn-sm">
-                Mark All Read
-              </button>
+              <h2 className="card-title">Companies</h2>
+              <Link href="/admin/companies" className="btn btn-ghost btn-sm">
+                View All
+                <ArrowUpRight size={16} />
+              </Link>
             </div>
-            <div className="space-y-4">
-              {alerts.map((alert) => (
-                <div key={alert.id} className={`alert ${
-                  alert.type === 'warning' ? 'alert-warning' :
-                  alert.type === 'success' ? 'alert-success' :
-                  alert.type === 'info' ? 'alert-info' :
-                  'alert-error'
-                }`}>
+            <div className="space-y-3">
+              {companies.map((company) => (
+                <div key={company.id} className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
                   <div>
-                    {alert.type === 'warning' && <AlertTriangle size={16} />}
-                    {alert.type === 'success' && <CheckCircle size={16} />}
-                    {alert.type === 'info' && <Activity size={16} />}
-                    {alert.type === 'error' && <AlertTriangle size={16} />}
-                    <span>{alert.message}</span>
+                    <div className="font-medium">{company.name}</div>
+                    <div className="text-sm opacity-70">{company.users} users</div>
                   </div>
-                  <div className="text-xs opacity-70">{alert.time}</div>
+                  <div className="text-right">
+                    <div className={`badge ${
+                      company.status === 'active' ? 'badge-success' : 'badge-ghost'
+                    }`}>
+                      {company.status}
+                    </div>
+                    <div className="text-xs opacity-70 mt-1">{company.lastActivity}</div>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-        </div> */}
+        </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="card bg-base-100 shadow-xl mb-8">
+      {/* <div className="card bg-base-100 shadow-xl mb-8">
         <div className="card-body">
           <h2 className="card-title mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -167,75 +173,39 @@ export default function AdminDashboard() {
             
           </div>
         </div>
-      </div>
+      </div> */}
 
-      {/* Recent Activity */}
+      {/* Recent Insights */}
       <div className="card bg-base-100 shadow-xl">
-        <div className="card-body">
-          <h2 className="card-title mb-4">Recent Activity</h2>
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <div className="bg-primary/10 p-2 rounded-full">
-                <FileText size={16} className="text-primary" />
-              </div>
-              <div>
-                <p className="font-medium">New content published: "Summer Collection Preview"</p>
-                <div className="flex items-center gap-2 text-sm opacity-70">
-                  <Clock size={14} />
-                  <span>2 hours ago</span>
-                  <span>•</span>
-                  <span>by John Doe</span>
-                </div>
-              </div>
+          <div className="card-body">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="card-title">Recent Insights</h2>
+              <Link href="/admin/insights" className="btn btn-ghost btn-sm">
+                View All
+                <ArrowUpRight size={16} />
+              </Link>
             </div>
-
-            <div className="flex gap-4">
-              <div className="bg-secondary/10 p-2 rounded-full">
-                <Users size={16} className="text-secondary" />
-              </div>
-              <div>
-                <p className="font-medium">New user added: marketing@example.com</p>
-                <div className="flex items-center gap-2 text-sm opacity-70">
-                  <Clock size={14} />
-                  <span>5 hours ago</span>
-                  <span>•</span>
-                  <span>by Admin</span>
+            <div className="space-y-3">
+              {recentInsights.map((insight) => (
+                <div key={insight.id} className="p-3 bg-base-200 rounded-lg">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-medium text-sm">{insight.title}</h4>
+                    {insight.actionable && (
+                      <div className="badge badge-success badge-xs">
+                        <CheckCircle size={8} className="mr-1" />
+                        Actionable
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="badge badge-outline badge-xs">{insight.category}</span>
+                    <span className="opacity-70">{new Date(insight.date).toLocaleDateString()}</span>
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="bg-accent/10 p-2 rounded-full">
-                <ThumbsUp size={16} className="text-accent" />
-              </div>
-              <div>
-                <p className="font-medium">Content approved: "Mindfulness Practice Series"</p>
-                <div className="flex items-center gap-2 text-sm opacity-70">
-                  <Clock size={14} />
-                  <span>1 day ago</span>
-                  <span>•</span>
-                  <span>by Review Team</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <div className="bg-info/10 p-2 rounded-full">
-                <Calendar size={16} className="text-info" />
-              </div>
-              <div>
-                <p className="font-medium">Scheduled content: "Community Spotlight: Outdoor Yoga"</p>
-                <div className="flex items-center gap-2 text-sm opacity-70">
-                  <Clock size={14} />
-                  <span>2 days ago</span>
-                  <span>•</span>
-                  <span>by Content Team</span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }

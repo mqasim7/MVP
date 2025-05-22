@@ -1,158 +1,284 @@
+// frontend/src/components/admin/UserManagement.tsx (updated)
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, Search, Filter, MoreVertical,
   ShieldCheck, ShieldX, Mail, Calendar, CheckCircle, 
-  XCircle, Eye, Lock,
-  Clock,
-  Users
+  XCircle, Eye, Lock, Clock, Users, Building2
 } from 'lucide-react';
 import Link from 'next/link';
 
+interface Company {
+  id: number;
+  name: string;
+  status: 'active' | 'inactive';
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: 'admin' | 'editor' | 'viewer';
+  status: 'active' | 'inactive' | 'pending';
+  department?: string;
+  company_id?: number;
+  company_name?: string;
+  last_login?: string;
+  created_at: string;
+}
+
 export default function UserManagement() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [companyFilter, setCompanyFilter] = useState('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    role: 'viewer' as 'admin' | 'editor' | 'viewer',
+    department: '',
+    company_id: '',
+    status: 'pending' as 'active' | 'inactive' | 'pending',
+    password: '',
+    sendInvite: true
+  });
   
-  // Mock users data
-  const users = [
+  // Mock data
+  const mockCompanies: Company[] = [
+    { id: 1, name: 'Lululemon', status: 'active' },
+    { id: 2, name: 'Nike Marketing', status: 'active' },
+    { id: 3, name: 'Adidas Digital', status: 'active' },
+    { id: 4, name: 'Under Armour', status: 'inactive' },
+  ];
+
+  const mockUsers: User[] = [
     {
       id: 1,
       name: 'John Doe',
       email: 'john.doe@lululemon.com',
       role: 'admin',
       status: 'active',
-      lastLogin: '2025-05-16T14:22:30',
-      dateCreated: '2024-01-10',
-      department: 'Marketing'
+      department: 'IT',
+      company_id: 1,
+      company_name: 'Lululemon',
+      last_login: '2025-05-16T14:22:30',
+      created_at: '2024-01-10'
     },
     {
       id: 2,
       name: 'Jane Smith',
-      email: 'jane.smith@lululemon.com',
+      email: 'jane.smith@nike.com',
       role: 'editor',
       status: 'active',
-      lastLogin: '2025-05-15T09:45:12',
-      dateCreated: '2024-01-15',
-      department: 'Content'
+      department: 'Marketing',
+      company_id: 2,
+      company_name: 'Nike Marketing',
+      last_login: '2025-05-15T09:45:12',
+      created_at: '2024-01-15'
     },
     {
       id: 3,
-      name: 'Robert Johnson',
-      email: 'robert.johnson@lululemon.com',
+      name: 'Sarah Johnson',
+      email: 'sarah.johnson@nike.com',
       role: 'viewer',
-      status: 'active',
-      lastLogin: '2025-05-14T16:30:45',
-      dateCreated: '2024-02-05',
-      department: 'Design'
+      status: 'pending',
+      department: 'Content',
+      company_id: 2,
+      company_name: 'Nike Marketing',
+      created_at: '2025-05-15'
     },
     {
       id: 4,
-      name: 'Emily Davis',
-      email: 'emily.davis@lululemon.com',
-      role: 'editor',
-      status: 'active',
-      lastLogin: '2025-05-16T11:20:18',
-      dateCreated: '2024-02-20',
-      department: 'Marketing'
-    },
-    {
-      id: 5,
-      name: 'Michael Wilson',
-      email: 'michael.wilson@lululemon.com',
-      role: 'admin',
-      status: 'inactive',
-      lastLogin: '2025-04-30T10:15:22',
-      dateCreated: '2024-01-05',
-      department: 'IT'
-    },
-    {
-      id: 6,
-      name: 'Sarah Brown',
-      email: 'sarah.brown@lululemon.com',
-      role: 'viewer',
-      status: 'pending',
-      lastLogin: null,
-      dateCreated: '2025-05-15',
-      department: 'Sales'
-    },
-    {
-      id: 7,
-      name: 'David Miller',
-      email: 'david.miller@lululemon.com',
-      role: 'editor',
-      status: 'inactive',
-      lastLogin: '2025-03-24T14:50:10',
-      dateCreated: '2024-03-10',
-      department: 'Product'
-    },
-    {
-      id: 8,
-      name: 'Jennifer Taylor',
-      email: 'jennifer.taylor@lululemon.com',
+      name: 'Michael Chen',
+      email: 'michael.chen@adidas.com',
       role: 'viewer',
       status: 'active',
-      lastLogin: '2025-05-17T08:30:00',
-      dateCreated: '2024-04-15',
-      department: 'Marketing'
+      department: 'Design',
+      company_id: 3,
+      company_name: 'Adidas Digital',
+      last_login: '2025-05-14T16:30:45',
+      created_at: '2024-02-05'
     }
   ];
 
-  // Filter users based on search and filters
+  useEffect(() => {
+    // Simulate API calls
+    setTimeout(() => {
+      setCompanies(mockCompanies);
+      setUsers(mockUsers);
+      setIsLoading(false);
+    }, 1000);
+  }, []);
+
+  // Filter users
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.department.toLowerCase().includes(searchTerm.toLowerCase());
+      (user.department && user.department.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.company_name && user.company_name.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
+    const matchesCompany = companyFilter === 'all' || user.company_id?.toString() === companyFilter;
     
-    return matchesSearch && matchesRole && matchesStatus;
+    return matchesSearch && matchesRole && matchesStatus && matchesCompany;
   });
 
-  // Format date for display
-  const formatDate = (dateString:any) => {
-    if (!dateString) return 'Never';
-    
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays <= 1) {
-      return 'Today';
-    } else if (diffDays <= 2) {
-      return 'Yesterday';
+  const handleModalOpen = (user?: User) => {
+    if (user) {
+      setEditingUser(user);
+      setFormData({
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        department: user.department || '',
+        company_id: user.company_id?.toString() || '',
+        status: user.status,
+        password: '',
+        sendInvite: false
+      });
     } else {
-      return date.toLocaleDateString();
+      setEditingUser(null);
+      setFormData({
+        name: '',
+        email: '',
+        role: 'viewer',
+        department: '',
+        company_id: '',
+        status: 'pending',
+        password: '',
+        sendInvite: true
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setEditingUser(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const company = companies.find(c => c.id.toString() === formData.company_id);
+      
+      if (editingUser) {
+        // Update user
+        const updatedUser: User = {
+          ...editingUser,
+          ...formData,
+          company_id: formData.company_id ? parseInt(formData.company_id) : undefined,
+          company_name: company?.name,
+          role: formData.role,
+          status: formData.status
+        };
+        
+        setUsers(prev => prev.map(u => u.id === editingUser.id ? updatedUser : u));
+      } else {
+        // Create user
+        const newUser: User = {
+          id: Date.now(),
+          ...formData,
+          company_id: formData.company_id ? parseInt(formData.company_id) : undefined,
+          company_name: company?.name,
+          role: formData.role,
+          status: formData.status,
+          created_at: new Date().toISOString().split('T')[0]
+        };
+        
+        setUsers(prev => [newUser, ...prev]);
+      }
+      
+      handleModalClose();
+    } catch (error) {
+      console.error('Error saving user:', error);
     }
   };
 
-  // Format datetime for display
-  const formatDateTime = (dateTimeString:any) => {
+  const handleDelete = async (userId: number) => {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+    
+    try {
+      setUsers(prev => prev.filter(u => u.id !== userId));
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
+  };
+
+  const handleStatusToggle = async (userId: number, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    
+    try {
+      setUsers(prev => prev.map(u => 
+        u.id === userId ? { ...u, status: newStatus as any } : u
+      ));
+    } catch (error) {
+      console.error('Error updating user status:', error);
+    }
+  };
+
+  const formatDateTime = (dateTimeString?: string) => {
     if (!dateTimeString) return 'Never';
     
     const date = new Date(dateTimeString);
     return `${date.toLocaleDateString()} at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   };
 
-  // New user modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold">User Management</h1>
-          <p className="text-base-content/70">Manage user accounts and permissions</p>
+          <p className="text-base-content/70">Manage user accounts and permissions across companies</p>
         </div>
         <div className="mt-4 lg:mt-0">
-          <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+          <button className="btn btn-primary" onClick={() => handleModalOpen()}>
             <Plus size={16} />
             Add New User
           </button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="stat bg-base-100 shadow">
+          <div className="stat-title">Total Users</div>
+          <div className="stat-value text-primary">{users.length}</div>
+        </div>
+        <div className="stat bg-base-100 shadow">
+          <div className="stat-title">Active Users</div>
+          <div className="stat-value text-success">
+            {users.filter(u => u.status === 'active').length}
+          </div>
+        </div>
+        <div className="stat bg-base-100 shadow">
+          <div className="stat-title">Pending Approval</div>
+          <div className="stat-value text-warning">
+            {users.filter(u => u.status === 'pending').length}
+          </div>
+        </div>
+        <div className="stat bg-base-100 shadow">
+          <div className="stat-title">Companies</div>
+          <div className="stat-value">
+            {new Set(users.map(u => u.company_id).filter(Boolean)).size}
+          </div>
         </div>
       </div>
 
@@ -173,6 +299,16 @@ export default function UserManagement() {
           </div>
         </div>
         <div className="flex gap-2">
+          <select 
+            className="select select-bordered" 
+            value={companyFilter}
+            onChange={(e) => setCompanyFilter(e.target.value)}
+          >
+            <option value="all">All Companies</option>
+            {companies.map(company => (
+              <option key={company.id} value={company.id.toString()}>{company.name}</option>
+            ))}
+          </select>
           <select 
             className="select select-bordered" 
             value={roleFilter}
@@ -203,11 +339,11 @@ export default function UserManagement() {
             <thead>
               <tr>
                 <th>User</th>
+                <th>Company</th>
                 <th>Role</th>
                 <th>Department</th>
                 <th>Status</th>
                 <th>Last Login</th>
-                <th>Date Created</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -229,6 +365,16 @@ export default function UserManagement() {
                       </div>
                     </td>
                     <td>
+                      {user.company_name ? (
+                        <div className="flex items-center">
+                          <Building2 size={14} className="mr-1 opacity-50" />
+                          <span>{user.company_name}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">No company</span>
+                      )}
+                    </td>
+                    <td>
                       <span className={`badge ${
                         user.role === 'admin' ? 'badge-primary' :
                         user.role === 'editor' ? 'badge-secondary' :
@@ -237,7 +383,7 @@ export default function UserManagement() {
                         {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                       </span>
                     </td>
-                    <td>{user.department}</td>
+                    <td>{user.department || '-'}</td>
                     <td>
                       <div className="flex items-center">
                         {user.status === 'active' ? (
@@ -250,24 +396,23 @@ export default function UserManagement() {
                         <span className="capitalize">{user.status}</span>
                       </div>
                     </td>
-                    <td>{formatDateTime(user.lastLogin)}</td>
-                    <td>{formatDate(user.dateCreated)}</td>
+                    <td className="text-sm">{formatDateTime(user.last_login)}</td>
                     <td>
                       <div className="dropdown dropdown-end">
                         <div tabIndex={0} role="button" className="btn btn-ghost btn-sm">
                           <MoreVertical size={16} />
                         </div>
                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                          <li><a><Edit size={14} className="mr-2" /> Edit User</a></li>
+                          <li><a onClick={() => handleModalOpen(user)}><Edit size={14} className="mr-2" /> Edit User</a></li>
                           <li><a><Lock size={14} className="mr-2" /> Reset Password</a></li>
-                          <li><a className={user.status === 'active' ? 'text-error' : 'text-success'}>
+                          <li><a onClick={() => handleStatusToggle(user.id, user.status)} className={user.status === 'active' ? 'text-error' : 'text-success'}>
                             {user.status === 'active' ? (
                               <><XCircle size={14} className="mr-2" /> Deactivate</>
                             ) : (
                               <><CheckCircle size={14} className="mr-2" /> Activate</>
                             )}
                           </a></li>
-                          <li><a className="text-error"><Trash2 size={14} className="mr-2" /> Delete</a></li>
+                          <li><a className="text-error" onClick={() => handleDelete(user.id)}><Trash2 size={14} className="mr-2" /> Delete</a></li>
                         </ul>
                       </div>
                     </td>
@@ -289,91 +434,163 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {/* Add User Modal */}
+      {/* Add/Edit User Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="modal-box w-11/12 max-w-xl">
-            <h3 className="font-bold text-lg">Add New User</h3>
+          <div className="modal-box w-11/12 max-w-2xl">
+            <h3 className="font-bold text-lg">
+              {editingUser ? 'Edit User' : 'Add New User'}
+            </h3>
             <button 
               className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-              onClick={() => setIsModalOpen(false)}
+              onClick={handleModalClose}
             >
               ✕
             </button>
             
-            <div className="py-4">
-              <form>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Full Name</span>
-                    </label>
-                    <input type="text" placeholder="e.g. John Doe" className="input input-bordered w-full" />
-                  </div>
-                  
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Email</span>
-                    </label>
-                    <input type="email" placeholder="e.g. john.doe@example.com" className="input input-bordered w-full" />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Role</span>
-                    </label>
-                    <select className="select select-bordered w-full">
-                      <option value="viewer">Viewer</option>
-                      <option value="editor">Editor</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </div>
-                  
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Department</span>
-                    </label>
-                    <select className="select select-bordered w-full">
-                      <option value="marketing">Marketing</option>
-                      <option value="content">Content</option>
-                      <option value="design">Design</option>
-                      <option value="product">Product</option>
-                      <option value="sales">Sales</option>
-                      <option value="it">IT</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="divider">Password</div>
-                
-                <div className="form-control">
-                  <label className="label cursor-pointer justify-start">
-                    <input type="checkbox" className="checkbox checkbox-primary mr-2" checked />
-                    <span className="label-text">Send email invitation with password setup link</span>
+            <form onSubmit={handleSubmit} className="py-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="form-control w-full">
+                  <label className="label">
+                    <span className="label-text">Full Name *</span>
                   </label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. John Doe" 
+                    className="input input-bordered w-full" 
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    required
+                  />
                 </div>
                 
-                <div className="form-control mt-4">
-                  <label className="label cursor-pointer justify-start">
-                    <input type="checkbox" className="checkbox checkbox-primary mr-2" />
-                    <span className="label-text">Set password manually</span>
+                <div className="form-control w-full">
+                  <label className="label">
+                    <span className="label-text">Email *</span>
                   </label>
+                  <input 
+                    type="email" 
+                    placeholder="john.doe@company.com" 
+                    className="input input-bordered w-full" 
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    required
+                  />
                 </div>
-                
-                <div className="modal-action mt-6">
-                  <button 
-                    type="button" 
-                    className="btn btn-ghost"
-                    onClick={() => setIsModalOpen(false)}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="form-control w-full">
+                  <label className="label">
+                    <span className="label-text">Company *</span>
+                  </label>
+                  <select 
+                    className="select select-bordered w-full"
+                    value={formData.company_id}
+                    onChange={(e) => setFormData(prev => ({ ...prev, company_id: e.target.value }))}
+                    required
                   >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-primary">Add User</button>
+                    <option value="">Select a company</option>
+                    {companies.filter(c => c.status === 'active').map(company => (
+                      <option key={company.id} value={company.id.toString()}>
+                        {company.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </form>
-            </div>
+                
+                <div className="form-control w-full">
+                  <label className="label">
+                    <span className="label-text">Role *</span>
+                  </label>
+                  <select 
+                    className="select select-bordered w-full"
+                    value={formData.role}
+                    onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as any }))}
+                  >
+                    <option value="viewer">Viewer (Read Only)</option>
+                    <option value="editor">Editor</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="form-control w-full">
+                  <label className="label">
+                    <span className="label-text">Department</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Marketing" 
+                    className="input input-bordered w-full" 
+                    value={formData.department}
+                    onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                  />
+                </div>
+                
+                <div className="form-control w-full">
+                  <label className="label">
+                    <span className="label-text">Status</span>
+                  </label>
+                  <select 
+                    className="select select-bordered w-full"
+                    value={formData.status}
+                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+                  >
+                    <option value="pending">Pending Approval</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+              
+              {!editingUser && (
+                <>
+                  <div className="divider">Account Setup</div>
+                  
+                  <div className="form-control">
+                    <label className="label cursor-pointer justify-start">
+                      <input 
+                        type="checkbox" 
+                        className="checkbox checkbox-primary mr-2" 
+                        checked={formData.sendInvite}
+                        onChange={(e) => setFormData(prev => ({ ...prev, sendInvite: e.target.checked }))}
+                      />
+                      <span className="label-text">Send email invitation with password setup link</span>
+                    </label>
+                  </div>
+                  
+                  {!formData.sendInvite && (
+                    <div className="form-control mt-4">
+                      <label className="label">
+                        <span className="label-text">Temporary Password</span>
+                      </label>
+                      <input 
+                        type="password" 
+                        placeholder="Leave blank to generate automatically" 
+                        className="input input-bordered w-full" 
+                        value={formData.password}
+                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+              
+              <div className="modal-action mt-6">
+                <button 
+                  type="button" 
+                  className="btn btn-ghost"
+                  onClick={handleModalClose}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  {editingUser ? 'Update User' : 'Add User'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

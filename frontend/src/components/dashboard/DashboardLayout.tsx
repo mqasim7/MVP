@@ -8,6 +8,7 @@ import MobileNavigation from './MobileNavigation';
 import { getUserFromToken } from '@/lib/auth';
 import { User } from '@/types/dashboard';
 import { getInitials } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
   const pathname = usePathname();
+  const { logout } = useAuth();
   
   useEffect(() => {
     // Get user info from token
@@ -65,7 +67,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             </label>
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-semibold">Lululemon Dashboard</h1>
+            <h1 className="text-xl font-semibold">Dashboard</h1>
           </div>
           <div className="flex-none gap-2">
             {/* <button className="btn btn-ghost btn-circle">
@@ -84,14 +86,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </div>
               </label>
               <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-                <li>
+                {/* <li>
                   <a className="justify-between">
                     Profile
                     <span className="badge">New</span>
                   </a>
                 </li>
-                <li><a>Settings</a></li>
-                <li><a>Logout</a></li>
+                <li><a>Settings</a></li> */}
+                <li><a  onClick={() => logout()}>Logout</a></li>
               </ul>
             </div>
           </div>

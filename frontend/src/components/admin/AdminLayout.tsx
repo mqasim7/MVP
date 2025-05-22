@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Settings, Users, FileText, Grid, BarChart2, Shield, Plus } from 'lucide-react';
+import { Settings, Users, FileText, Grid, BarChart2, Shield, Plus, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 // Admin layout component
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   return (
     <div className="drawer lg:drawer-open">
@@ -23,7 +25,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar */}
       <div className="drawer-side z-20">
         <label htmlFor="admin-drawer" className="drawer-overlay" onClick={() => setSidebarOpen(false)}></label>
-        <div className="menu p-4 w-80 h-full bg-base-200 text-base-content">
+        <div className="menu p-4 w-80 h-full bg-grey bg-base-200 text-base-content">
           {/* Admin Header */}
           <div className="flex items-center mb-6 pb-4 border-b border-base-300">
             <div className="bg-primary text-primary-content p-2 rounded mr-2">
@@ -64,6 +66,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 Persona Management
               </Link>
             </li>
+
+
+            <li>
+              <Link 
+                href="/admin/companies" 
+                className={pathname === '/admin/companies' ? 'active' : ''}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Building2 size={18} />
+                Companies
+              </Link>
+            </li>
+
             <li>
               <Link 
                 href="/admin/users" 
@@ -97,7 +112,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </label>
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-semibold">Lululemon Admin</h1>
+            <h1 className="text-xl font-semibold">Admin</h1>
           </div>
           <div className="flex-none gap-2">
             <div className="dropdown dropdown-end">
@@ -107,9 +122,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
               </label>
               <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-                <li><a>Profile</a></li>
-                <li><a>Settings</a></li>
-                <li><a>Logout</a></li>
+                {/* <li><a>Profile</a></li>
+                <li><a>Settings</a></li> */}
+                <li><a  onClick={() => logout()}>Logout</a></li>
               </ul>
             </div>
           </div>

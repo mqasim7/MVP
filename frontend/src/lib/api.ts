@@ -1,3 +1,4 @@
+// frontend/src/lib/api.ts (updated)
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { getCookie, setCookie, deleteCookie } from 'cookies-next';
 
@@ -69,10 +70,45 @@ export const authApi = {
   }
 };
 
-// User management endpoints
+// Company management endpoints
+export const companyApi = {
+  getAll: async () => {
+    return (await api.get('/companies')).data;
+  },
+  
+  getById: async (id: number) => {
+    return (await api.get(`/companies/${id}`)).data;
+  },
+  
+  create: async (companyData: any) => {
+    return (await api.post('/companies', companyData)).data;
+  },
+  
+  update: async (id: number, companyData: any) => {
+    return (await api.put(`/companies/${id}`, companyData)).data;
+  },
+  
+  delete: async (id: number) => {
+    return (await api.delete(`/companies/${id}`)).data;
+  },
+  
+  getUsers: async (id: number) => {
+    return (await api.get(`/companies/${id}/users`)).data;
+  },
+  
+  getStats: async (id: number) => {
+    return (await api.get(`/companies/${id}/stats`)).data;
+  }
+};
+
+// User management endpoints (updated)
 export const userApi = {
   getAll: async () => {
     return (await api.get('/users')).data;
+  },
+  
+  getByCompany: async (companyId: number) => {
+    return (await api.get(`/users?company=${companyId}`)).data;
   },
   
   getById: async (id: number) => {
@@ -169,7 +205,7 @@ export const feedApi = {
   }
 };
 
-// Insights endpoints
+// Enhanced insights endpoints
 export const insightsApi = {
   getAll: async (params: any = {}) => {
     return (await api.get('/insights', { params })).data;
@@ -189,11 +225,38 @@ export const insightsApi = {
   
   delete: async (id: number) => {
     return (await api.delete(`/insights/${id}`)).data;
+  },
+  
+  getByCategory: async (category: string) => {
+    return (await api.get(`/insights?category=${category}`)).data;
+  },
+  
+  getByPlatform: async (platform: string) => {
+    return (await api.get(`/insights?platform=${platform}`)).data;
+  },
+  
+  getActionable: async () => {
+    return (await api.get('/insights?actionable=true')).data;
+  },
+  
+  getByAuthor: async (authorId: number) => {
+    return (await api.get(`/insights?author=${authorId}`)).data;
+  },
+  
+  search: async (searchTerm: string, filters: any = {}) => {
+    const params = { search: searchTerm, ...filters };
+    return (await api.get('/insights', { params })).data;
+  },
+  
+  getStats: async () => {
+    return (await api.get('/insights/stats')).data;
   }
 };
 
+// Export default API object
 export default {
   auth: authApi,
+  companies: companyApi,
   users: userApi,
   content: contentApi,
   personas: personaApi,

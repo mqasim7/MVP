@@ -18,13 +18,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   return (
     <div className="drawer-side">
       <label htmlFor="main-drawer" className="drawer-overlay" onClick={onClose}></label>
-      <div className="menu p-4 w-80 h-full bg-base-200 text-base-content">
+      <div className="menu p-4 w-80 h-full bg-grey bg-base-200 text-base-content">
         {/* Header */}
         <div className="flex items-center mb-6 pb-4 border-b border-base-300">
           <div className="bg-primary text-primary-content p-2 rounded mr-2">
-            <span className="font-bold">BI</span>
+            <span className="font-bold text-black">BI</span>
           </div>
-          <span className="font-semibold text-xl">Lululemon</span>
+          <span className="font-semibold text-xl"></span>
         </div>
         
         {/* Menu Items */}
@@ -101,7 +101,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
             <button 
               className="btn btn-ghost btn-circle ml-auto"
-              onClick={logout}
+              onClick={() => logout()}
             >
               <LogOut size={18} />
             </button>

@@ -3,7 +3,8 @@ import AdminDashboard from './AdminDashboard';
 import ContentManagement from './ContentManagement';
 import PersonaManagement from './PersonaManagement';
 import UserManagement from './UserManagement';
-
+import CompanyManagement from './CompanyManagement'; // New
+import InsightsManagement from './InsightsManagement'; 
 // Export a placeholder component for screens that haven't been fully implemented yet
 import React from 'react';
 import Link from 'next/link';
@@ -94,5 +95,7 @@ export {
   AdminDashboard,
   ContentManagement,
   PersonaManagement,
-  UserManagement
+  UserManagement,
+  CompanyManagement,
+  InsightsManagement
 };

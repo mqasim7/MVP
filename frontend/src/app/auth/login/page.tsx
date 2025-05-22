@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-200">
+    <div className="min-h-screen bg-white flex items-center justify-center bg-base-200">
       <div className="card w-full max-w-md bg-base-100 shadow-xl">
         <div className="card-body">
           {/* <div className="flex justify-center mb-4">
@@ -19,7 +19,7 @@ export default function LoginPage() {
               className="h-12 w-auto"
             />
           </div> */}
-          <h2 className="card-title text-2xl font-bold text-center justify-center mb-6">
+          <h2 className="card-title text-2xl font-bold text-black text-center justify-center mb-6">
             Sign in to your account
           </h2>
           

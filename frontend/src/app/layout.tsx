@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from '@/context/AuthContext';
+import ToastProvider from '@/components/ui/ToastProvider';
 
 export const metadata: Metadata = {
   title: "MVP Next App",
@@ -20,6 +20,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           {children}
+          <ToastProvider />
         </AuthProvider>
       </body>
     </html>
