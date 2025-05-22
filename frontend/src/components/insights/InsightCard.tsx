@@ -15,7 +15,7 @@ const InsightCard: React.FC<InsightCardProps> = ({ insight, onClick }) => {
   
   const handleViewFullInsight = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent the card's onClick from firing
-    router.push(`/insights/${id}`);
+    router.push(`/dashboard/insights/${id}`);
   };
   
   return (
