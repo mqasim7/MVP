@@ -1,10 +1,18 @@
 import { setCookie, deleteCookie, getCookie } from 'cookies-next';
 import { useRouter } from 'next/navigation';
 import { LoginCredentials, User, AuthResponse } from '@/types/auth';
-import api from './api';
+// import api from './api';
 import jwt from 'jsonwebtoken';
+import axios from 'axios';
 
 export const TOKEN_KEY = 'lululemon_token';
+
+const api = axios.create({
+  baseURL: 'http://localhost:4000/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export const setAuthToken = (token: string): void => {
   setCookie(TOKEN_KEY, token, {
