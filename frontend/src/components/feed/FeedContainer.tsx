@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import PersonaSelector from '@/components/ui/PersonaSelector';
 import VideoPlayer from '@/components/feed/VideoPlayer';
 import PlatformFilter from '@/components/feed/PlatformFilter';
 import { FeedItem } from '@/types/dashboard';
-// import { getFeedItems } from '@/lib/api';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 // Mock data with actual links to videos and social media posts
 const mockFeedItems: FeedItem[] = [
@@ -16,7 +16,6 @@ const mockFeedItems: FeedItem[] = [
     date: "May 2025",
     poster: "/api/placeholder/400/720",
     platform: "Instagram",
-    // Use an Instagram embed link
     socialLink: "https://www.instagram.com/reel/DFp2ZoZIBzO",
     metrics: {
       likes: "12.5k",
@@ -31,7 +30,6 @@ const mockFeedItems: FeedItem[] = [
     date: "May 2025",
     poster: "/api/placeholder/400/720",
     platform: "TikTok",
-    // Use a TikTok embed link
     socialLink: "https://www.tiktok.com/@scout2015/video/7505949882511838495",
     metrics: {
       likes: "22.7k",
@@ -44,10 +42,9 @@ const mockFeedItems: FeedItem[] = [
     title: "Product in Motion",
     description: "Dynamic product demos showing real benefits boost conversions",
     date: "May 2025",
-    // Direct video source
-    videoUrl: "https://www.tiktok.com/@scout2015/video/6718335390845095173",
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
     poster: "/api/placeholder/400/720",
-    platform: "Mojo", // Our own platform
+    platform: "Mojo",
     metrics: {
       likes: "18.3k",
       comments: "2.1k",
@@ -62,7 +59,7 @@ interface PlatformFilters {
 
 const FeedContainer: React.FC = () => {
   const [selectedPersona, setSelectedPersona] = useState<number>(1);
-  const [currentFeedIndex, setCurrentFeedIndex] = useState<number>(0);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [platformFilters, setPlatformFilters] = useState<PlatformFilters>({
     mojo: true,
     instagram: true,
@@ -70,42 +67,34 @@ const FeedContainer: React.FC = () => {
   });
   const [feedItems, setFeedItems] = useState<FeedItem[]>(mockFeedItems);
   const [filteredItems, setFilteredItems] = useState<FeedItem[]>(mockFeedItems);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Fetch feed items based on persona
+  const containerRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const scrollTimeoutRef = useRef<number | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  
+  // Check if mobile
   useEffect(() => {
-    /*
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const platforms = Object.entries(platformFilters)
-          .filter(([_, isSelected]) => isSelected)
-          .map(([platform]) => platform);
-        
-        const data = await getFeedItems(selectedPersona, platforms);
-        setFeedItems(data);
-        setFilteredItems(data);
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch feed items');
-        console.error('Error fetching feed:', err);
-      } finally {
-        setIsLoading(false);
-      }
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
     };
     
-    fetchData();
-    */
-
-    // Using mock data for now
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Fetch feed items based on persona
+  useEffect(() => {
     setFeedItems(mockFeedItems);
-    setCurrentFeedIndex(0); // Reset to first item when persona changes
+    setCurrentIndex(0);
   }, [selectedPersona]);
   
   // Apply platform filters
   useEffect(() => {
-    // If no filters are selected, show all
     const anyFilterActive = Object.values(platformFilters).some(value => value);
     
     if (!anyFilterActive) {
@@ -113,7 +102,6 @@ const FeedContainer: React.FC = () => {
       return;
     }
     
-    // Filter items based on selected platforms
     const filtered = feedItems.filter(item => {
       const platform = item.platform.toLowerCase();
       return platformFilters[platform];
@@ -121,11 +109,46 @@ const FeedContainer: React.FC = () => {
     
     setFilteredItems(filtered.length > 0 ? filtered : []);
     
-    // Reset current index if it's out of bounds
-    if (filtered.length > 0 && currentFeedIndex >= filtered.length) {
-      setCurrentFeedIndex(0);
+    if (filtered.length > 0 && currentIndex >= filtered.length) {
+      setCurrentIndex(0);
     }
-  }, [platformFilters, feedItems, currentFeedIndex]);
+  }, [platformFilters, feedItems, currentIndex]);
+  
+  // Intersection Observer for autoplay
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+    
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const index = parseInt(entry.target.getAttribute('data-index') || '0');
+          if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+            setCurrentIndex(index);
+          }
+        });
+      },
+      {
+        threshold: 0.5,
+        root: containerRef.current
+      }
+    );
+    
+    // Observe all items
+    itemRefs.current.forEach((item, index) => {
+      if (item && observerRef.current) {
+        item.setAttribute('data-index', index.toString());
+        observerRef.current.observe(item);
+      }
+    });
+    
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [filteredItems]);
   
   // Handle platform filter change
   const handleFilterChange = (platform: string): void => {
@@ -135,28 +158,93 @@ const FeedContainer: React.FC = () => {
     }));
   };
   
-  // Navigation handlers
-  const goToPrevious = (): void => {
-    if (filteredItems.length === 0) return;
+  // Scroll to specific index
+  const scrollToIndex = useCallback((index: number) => {
+    if (!containerRef.current || !itemRefs.current[index]) return;
     
-    setCurrentFeedIndex(prev => 
-      prev === 0 ? filteredItems.length - 1 : prev - 1
-    );
+    const container = containerRef.current;
+    const item = itemRefs.current[index];
+    
+    if (isMobile) {
+      item.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      container.scrollTop = item.offsetTop;
+    }
+    
+    setCurrentIndex(index);
+  }, [isMobile]);
+  
+  // Handle scroll event on mobile
+  const handleScroll = useCallback(() => {
+    if (!containerRef.current || !isMobile) return;
+    
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    
+    scrollTimeoutRef.current = window.setTimeout(() => {
+      if (!containerRef.current) return;
+      
+      const container = containerRef.current;
+      const scrollTop = container.scrollTop;
+      const containerHeight = container.clientHeight;
+      
+      let closestIndex = 0;
+      let closestDistance = Infinity;
+      
+      itemRefs.current.forEach((item, index) => {
+        if (item) {
+          const itemTop = item.offsetTop;
+          const itemCenter = itemTop + (item.clientHeight / 2);
+          const containerCenter = scrollTop + (containerHeight / 2);
+          const distance = Math.abs(itemCenter - containerCenter);
+          
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = index;
+          }
+        }
+      });
+      
+      if (closestIndex !== currentIndex) {
+        setCurrentIndex(closestIndex);
+        scrollToIndex(closestIndex);
+      }
+    }, 100);
+  }, [currentIndex, isMobile, scrollToIndex]);
+  
+  // Keyboard navigation for desktop
+  useEffect(() => {
+    if (isMobile) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowUp' && currentIndex > 0) {
+        scrollToIndex(currentIndex - 1);
+      } else if (e.key === 'ArrowDown' && currentIndex < filteredItems.length - 1) {
+        scrollToIndex(currentIndex + 1);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, filteredItems.length, isMobile, scrollToIndex]);
+  
+  // Navigation functions
+  const goToPrevious = () => {
+    if (currentIndex > 0) {
+      scrollToIndex(currentIndex - 1);
+    }
   };
   
-  const goToNext = (): void => {
-    if (filteredItems.length === 0) return;
-    
-    setCurrentFeedIndex(prev => 
-      prev === filteredItems.length - 1 ? 0 : prev + 1
-    );
+  const goToNext = () => {
+    if (currentIndex < filteredItems.length - 1) {
+      scrollToIndex(currentIndex + 1);
+    }
   };
-  
-  const currentItem = filteredItems[currentFeedIndex];
   
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-20">
+      <div className="flex justify-center items-center h-screen bg-white">
         <span className="loading loading-spinner loading-lg text-primary"></span>
       </div>
     );
@@ -180,43 +268,57 @@ const FeedContainer: React.FC = () => {
   }
   
   return (
-    <div className="max-w-6xl mx-auto pb-20 lg:pb-0 text-black min-h-screen">
-      {/* Persona Selector */}
-      <div className="mb-6 pt-4">
-        <PersonaSelector 
-          value={selectedPersona} 
-          onChange={setSelectedPersona} 
-        />
+    <div className="h-screen flex flex-col bg-white">
+      {/* Header with persona selector and filters */}
+      <div className="flex-shrink-0 p-4 backdrop-blur-sm z-10">
+        <div className="max-w-6xl text-black mx-auto">
+          <PersonaSelector 
+            value={selectedPersona} 
+            onChange={setSelectedPersona} 
+          />
+          <PlatformFilter 
+            platforms={platformFilters}
+            onChange={handleFilterChange}
+          />
+        </div>
       </div>
       
-      {/* Social Media Platform Filters */}
-      <PlatformFilter 
-        platforms={platformFilters}
-        onChange={handleFilterChange}
-      />
-      
-      {/* Video Player */}
-      <div className="relative max-w-md mx-auto">
-        {filteredItems.length > 0 ? (
-          <VideoPlayer 
-          src={currentItem.videoUrl}
-          poster={currentItem.poster}
-          title={currentItem.title}
-          description={currentItem.description}
-          metrics={currentItem.metrics}
-          socialLink={currentItem.socialLink}
-          onNext={goToNext}
-          onPrevious={goToPrevious}
-          index={currentFeedIndex}
-          total={filteredItems.length}
-          date={currentItem.date}
-        />
-        ) : (
-          <div className="card card-compact w-full max-w-md mx-auto bg-black border border-white/20 shadow-xl">
-            <div className="card-body">
-              <h2 className="card-title text-white">No content found</h2>
-              <p className="text-white/70">No content matches your current filter selection. Try adjusting your filters.</p>
-              <div className="card-actions justify-end mt-4">
+      {/* Feed container */}
+      <div className="flex-1 relative overflow-hidden">
+        <div
+          ref={containerRef}
+          className={`h-full overflow-y-auto snap-y snap-mandatory scrollbar-hide`}
+          onScroll={handleScroll}
+        >
+          {filteredItems.length > 0 ? (
+            filteredItems.map((item, index) => (
+              <div
+                key={item.id}
+                // ref={el => itemRefs.current[index] = el}
+                className="h-full flex items-center justify-center snap-start"
+                data-index={index}
+              >
+                <VideoPlayer
+                  src={item.videoUrl}
+                  poster={item.poster}
+                  title={item.title}
+                  description={item.description}
+                  metrics={item.metrics}
+                  socialLink={item.socialLink}
+                  date={item.date}
+                  autoplay={index === currentIndex}
+                  index={index}
+                  total={filteredItems.length}
+                />
+              </div>
+            ))
+          ) : (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <h2 className="text-xl font-bold mb-2">No content found</h2>
+                <p className="text-white/70 mb-4">
+                  No content matches your current filter selection.
+                </p>
                 <button 
                   className="btn bg-white text-black hover:bg-white/90"
                   onClick={() => setPlatformFilters({
@@ -229,6 +331,54 @@ const FeedContainer: React.FC = () => {
                 </button>
               </div>
             </div>
+          )}
+        </div>
+        
+        {/* Desktop navigation overlay */}
+        {!isMobile && filteredItems.length > 0 && (
+          <>
+            <button
+              onClick={goToPrevious}
+              className={`absolute left-8 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-white/20 transition-all ${
+                currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              disabled={currentIndex === 0}
+            >
+              <ChevronUp size={24} />
+            </button>
+            
+            <button
+              onClick={goToNext}
+              className={`absolute right-8 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-white/20 transition-all ${
+                currentIndex === filteredItems.length - 1 ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              disabled={currentIndex === filteredItems.length - 1}
+            >
+              <ChevronDown size={24} />
+            </button>
+          </>
+        )}
+        
+        {/* Progress indicator */}
+        {filteredItems.length > 1 && (
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+            {filteredItems.map((_, index) => (
+              <div
+                key={index}
+                className={`w-1 h-12 rounded-full transition-all ${
+                  index === currentIndex
+                    ? 'bg-white w-2'
+                    : 'bg-white/30'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+        
+        {/* Swipe hint for mobile */}
+        {isMobile && filteredItems.length > 1 && (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 animate-bounce">
+            <ChevronUp size={20} className="text-white/50" />
           </div>
         )}
       </div>

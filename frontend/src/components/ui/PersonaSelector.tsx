@@ -71,7 +71,7 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, clas
         )}
       </div>
       
-      <div className="text-xs text-center mt-2 text-white/70">
+      <div className="text-xs text-center mt-2 text-black/70">
         An insider peek at what your ICP is watching
       </div>
     </div>
