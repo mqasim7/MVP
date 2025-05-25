@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import PersonaSelector from '@/components/ui/PersonaSelector';
-import VideoPlayer from '@/components/feed/VideoPlayer';
+import SimplifiedVideoPlayer from './SimplifiedVideoPlayer';
 import PlatformFilter from '@/components/feed/PlatformFilter';
 import { FeedItem } from '@/types/dashboard';
 import { ChevronUp, ChevronDown } from 'lucide-react';
@@ -268,10 +268,10 @@ const FeedContainer: React.FC = () => {
   }
   
   return (
-    <div className="h-screen flex flex-col bg-white">
+    <div className="h-screen flex flex-col bg-white text-black">
       {/* Header with persona selector and filters */}
-      <div className="flex-shrink-0 p-4 backdrop-blur-sm z-10">
-        <div className="max-w-6xl text-black mx-auto">
+      <div className="flex-shrink-0 p-4 bg-white/90 backdrop-blur-sm z-10">
+        <div className="max-w-6xl mx-auto">
           <PersonaSelector 
             value={selectedPersona} 
             onChange={setSelectedPersona} 
@@ -294,11 +294,12 @@ const FeedContainer: React.FC = () => {
             filteredItems.map((item, index) => (
               <div
                 key={item.id}
-                // ref={el => itemRefs.current[index] = el}
+                ref={el => itemRefs.current[index] = el}
                 className="h-full flex items-center justify-center snap-start"
                 data-index={index}
               >
-                <VideoPlayer
+                <SimplifiedVideoPlayer
+                  key={`video-${item.id}-${index}`}
                   src={item.videoUrl}
                   poster={item.poster}
                   title={item.title}
@@ -306,9 +307,8 @@ const FeedContainer: React.FC = () => {
                   metrics={item.metrics}
                   socialLink={item.socialLink}
                   date={item.date}
-                  autoplay={index === currentIndex}
-                  index={index}
-                  total={filteredItems.length}
+                  autoplay={true}
+                  isActive={index === currentIndex}
                 />
               </div>
             ))
