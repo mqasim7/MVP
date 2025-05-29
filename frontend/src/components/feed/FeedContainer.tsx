@@ -359,7 +359,7 @@ const FeedContainer: React.FC = () => {
         )}
         
         {/* Progress indicator */}
-        {filteredItems.length > 1 && (
+        {/* {filteredItems.length > 1 && (
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-1 z-10">
             {filteredItems.map((_, index) => (
               <div
@@ -372,7 +372,7 @@ const FeedContainer: React.FC = () => {
               />
             ))}
           </div>
-        )}
+        )} */}
         
         {/* Swipe hint for mobile */}
         {isMobile && filteredItems.length > 1 && (
