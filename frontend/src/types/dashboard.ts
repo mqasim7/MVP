@@ -5,7 +5,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'editor' | 'viewer'; // Make sure these match your backend
+  role: 'editor' | 'viewer' | 'admin' | any;
   avatar?: string;
   company_id?: number;
   company_name?: string;

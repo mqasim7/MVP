@@ -5,7 +5,7 @@ export interface LoginCredentials {
   
   export interface RegisterData extends LoginCredentials {
     name: string;
-    role?: 'admin' | 'user' | 'viewer';
+    role?: 'admin' | 'editor' | 'viewer';
   }
   
   export interface AuthResponse {
@@ -22,7 +22,7 @@ export interface LoginCredentials {
     id: string;
     name: string;
     email: string;
-    role: 'admin' | 'user' | 'viewer';
+    role: 'admin' | 'editor' | 'viewer';
     avatar?: string;
     title?: string;
     createdAt: string;
