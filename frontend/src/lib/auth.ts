@@ -1,104 +1,30 @@
-import { setCookie, deleteCookie, getCookie } from 'cookies-next';
-import { useRouter } from 'next/navigation';
-import { LoginCredentials, User, AuthResponse } from '@/types/auth';
-// import api from './api';
-import jwt from 'jsonwebtoken';
-import axios from 'axios';
+import { User } from '@/types/dashboard';
 
-export const TOKEN_KEY = 'lululemon_token';
-
-const api = axios.create({
-  baseURL: 'http://localhost:4000/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+export const TOKEN_KEY = 'token';
+export const USER_KEY = 'user';
 
 export const setAuthToken = (token: string): void => {
-  setCookie(TOKEN_KEY, token, {
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    path: '/',
-    sameSite: 'strict',
-    secure: process.env.NODE_ENV === 'production',
-  });
+  localStorage.setItem(TOKEN_KEY, token);
 };
 
 export const removeAuthToken = (): void => {
-  deleteCookie(TOKEN_KEY);
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
 };
 
-export const getUserFromToken = (): User | null => {
-  const token = getCookie(TOKEN_KEY);
-  
-  if (!token) return null;
+export const getStoredUser = (): User | null => {
+  const userStr = localStorage.getItem(USER_KEY);
+  console.log(userStr);
+  if (!userStr) return null;
   
   try {
-    const decoded = jwt.decode(token as string) as User;
-    return decoded;
+    return JSON.parse(userStr) as User;
   } catch (error) {
-    console.error('Error decoding token:', error);
+    console.error('Error parsing stored user:', error);
     return null;
   }
 };
 
 export const isAuthenticated = (): boolean => {
-  return !!getCookie(TOKEN_KEY);
-};
-
-export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-  try {
-    const response = await api.post<AuthResponse>('/auth/login', credentials);
-    const { token, user } = response.data;
-    
-    setAuthToken(token);
-    return response.data;
-  } catch (error) {
-    console.error('Login error:', error);
-    throw error;
-  }
-};
-
-export const register = async (userData: any): Promise<AuthResponse> => {
-  try {
-    const response = await api.post<AuthResponse>('/auth/register', userData);
-    const { token, user } = response.data;
-    
-    setAuthToken(token);
-    return response.data;
-  } catch (error) {
-    console.error('Registration error:', error);
-    throw error;
-  }
-};
-
-export const logout = (): void => {
-  removeAuthToken();
-  window.location.href = '/auth/login';
-};
-
-// Auth hook
-export const useAuth = () => {
-  const router = useRouter();
-
-  const authLogout = () => {
-    removeAuthToken();
-    router.push('/auth/login');
-  };
-
-  const checkAuth = () => {
-    const isAuth = isAuthenticated();
-    if (!isAuth) {
-      router.push('/auth/login');
-    }
-    return isAuth;
-  };
-
-  return {
-    login,
-    logout: authLogout,
-    register,
-    isAuthenticated,
-    checkAuth,
-    getUserFromToken,
-  };
+  return !!localStorage.getItem(TOKEN_KEY);
 };

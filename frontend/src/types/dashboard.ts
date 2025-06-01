@@ -5,9 +5,14 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'user' | 'viewer';
+  role: 'admin' | 'editor' | 'viewer'; // Make sure these match your backend
   avatar?: string;
-  title?: string;
+  company_id?: number;
+  company_name?: string;
+  department?: string;
+  status?: string;
+  created_at?: string;
+  last_login?: string;
 }
 
 // Feed content types

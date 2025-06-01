@@ -1,20 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// Note: Middleware runs on the server and doesn't have access to localStorage
+// We'll use a different approach for route protection
+
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('lululemon_token')?.value;
-  const isAuthPage = request.nextUrl.pathname.startsWith('/auth');
-
-  // Redirect unauthenticated users to login
-  if (!token && !isAuthPage) {
-    return NextResponse.redirect(new URL('/auth/login', request.url));
-  }
-
-  // Redirect authenticated users from auth pages to dashboard
-  if (token && isAuthPage) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
+  // For now, we'll let client-side handle authentication
+  // The withAuth HOC will handle route protection
   return NextResponse.next();
 }
 
@@ -22,6 +14,5 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/admin/:path*',
-    '/auth/:path*',
   ],
 };

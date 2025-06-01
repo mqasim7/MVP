@@ -4,7 +4,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/api';
 import { User } from '@/types/dashboard';
-import { getCookie } from 'cookies-next';
 
 interface AuthContextType {
   user: User | null;
@@ -34,26 +33,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check if user is authenticated on mount
   useEffect(() => {
-    const token = getCookie('token');
-    
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-    
-    const fetchUser = async () => {
+    const initializeAuth = async () => {
+      const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+      
+      if (!token || !storedUser) {
+        setIsLoading(false);
+        return;
+      }
+      
       try {
+        // Verify token is still valid by fetching profile
         const userData = await authApi.getProfile();
         setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
       } catch (err) {
-        console.error('Error fetching user profile:', err);
-        authApi.logout();
+        console.error('Error verifying authentication:', err);
+        // Token is invalid, clear storage
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
       } finally {
         setIsLoading(false);
       }
     };
     
-    fetchUser();
+    initializeAuth();
   }, []);
 
   // Login function
@@ -64,6 +68,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await authApi.login(email, password);
       setUser(response);
+      
+      // Role-based routing
       if (response.role === 'admin') {
         router.push('/admin');
       } else {
@@ -81,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     authApi.logout();
     setUser(null);
+    router.push('/auth/login');
   };
 
   return (

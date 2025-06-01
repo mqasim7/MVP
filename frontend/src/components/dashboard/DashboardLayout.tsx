@@ -5,8 +5,6 @@ import { Menu, Bell, Settings } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import MobileNavigation from './MobileNavigation';
-import { getUserFromToken } from '@/lib/auth';
-import { User } from '@/types/dashboard';
 import { getInitials } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 
@@ -17,20 +15,12 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [user, setUser] = useState<User | null>(null);
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   
   useEffect(() => {
-    // Get user info from token
-    const userData = getUserFromToken();
-    if (userData) {
-      setUser(userData);
-    }
-    
-    // Handle resize for responsive behavior
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+      setIsMobile(window.innerWidth < 1024);
     };
     
     handleResize();
@@ -38,7 +28,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  // Close sidebar on route change on mobile
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
@@ -55,10 +44,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         onChange={() => setSidebarOpen(!sidebarOpen)} 
       />
       
-      {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
-      {/* Page content */}
       <div className="drawer-content flex flex-col min-h-screen">
         <header className="navbar bg-base-100 shadow-sm sticky top-0 z-10">
           <div className="flex-none lg:hidden">
@@ -70,41 +57,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <h1 className="text-xl font-semibold">Dashboard</h1>
           </div>
           <div className="flex-none gap-2">
-            {/* <button className="btn btn-ghost btn-circle">
-              <div className="indicator">
-                <Bell size={20} />
-                <span className="badge badge-xs badge-primary indicator-item"></span>
-              </div>
-            </button> */}
-            {/* <button className="btn btn-ghost btn-circle">
-              <Settings size={20} />
-            </button> */}
             <div className="dropdown dropdown-end">
               <label tabIndex={0} className="btn btn-ghost btn-circle avatar placeholder">
                 <div className="bg-neutral text-neutral-content rounded-full w-10">
                   <span>{user ? getInitials(user.name) : 'U'}</span>
                 </div>
               </label>
-              <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-                {/* <li>
-                  <a className="justify-between">
-                    Profile
-                    <span className="badge">New</span>
-                  </a>
-                </li>
-                <li><a>Settings</a></li> */}
-                <li><a  onClick={() => logout()}>Logout</a></li>
+              <ul tabIndex={0} className="mt-3 z-[1] p-2 text-black shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+                <li><a style={{ zIndex: 100 }} onClick={() => logout()}>Logout</a></li>
               </ul>
             </div>
           </div>
         </header>
         
-        <main className="flex-1 p-4 overflow-y-auto pb-16 lg:pb-4">
+        <main className="flex-1 p-4 overflow-y-auto pb-16 lg:pb-4" style={{ zIndex: -1 }}>
           {children}
         </main>
-        
-        {/* Mobile Bottom Nav */}
-        {/* {isMobile && <MobileNavigation pathname={pathname} />} */}
       </div>
     </div>
   );

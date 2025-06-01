@@ -6,14 +6,15 @@ import {
   Compass, LogOut, Settings
 } from 'lucide-react';
 import { SidebarProps } from '@/types/dashboard';
-import { useAuth } from '@/lib/auth';
-import { getUserFromToken } from '@/lib/auth';
+import { getStoredUser } from '@/lib/auth';
+
 import { getInitials } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const user = getUserFromToken();
+  const user = getStoredUser();
   
   return (
     <div className="drawer-side">
@@ -97,7 +98,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium">{user?.name || 'User'}</p>
-              <p className="text-xs opacity-60">{user?.title || 'User'}</p>
+              <p className="text-xs opacity-60">{user?.name || 'User'}</p>
             </div>
             <button 
               className="btn btn-ghost btn-circle ml-auto"

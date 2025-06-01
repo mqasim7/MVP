@@ -13,24 +13,31 @@ export default function withAuth<P extends object>(
     const router = useRouter();
 
     useEffect(() => {
-      // If not logged in, redirect to login
-      if (!isLoading && !isAuthenticated) {
-        router.push('/auth/login');
-        return;
-      }
-      
-      // User is authenticated, now check roles
-      if (!isLoading && isAuthenticated && user) {
+      if (!isLoading) {
+        // If not logged in, redirect to login
+        if (!isAuthenticated) {
+          router.push('/auth/login');
+          return;
+        }
+        
         // Check role requirements if specified
-        if (requiredRole) {
-          // If specific role required but user doesn't have it
-          if (user.role !== requiredRole) {
-            // Redirect based on user's actual role
-            if (user.role === 'admin') {
-              router.push('/admin');
-            } else {
-              router.push('/dashboard/feed');
-            }
+        if (requiredRole && user) {
+          // Admin can access everything
+          if (user.role === 'admin') {
+            // Admin accessing non-admin route, let them through
+            return;
+          }
+          
+          // Non-admin trying to access admin route
+          if (requiredRole === 'admin' && user.role !== 'admin') {
+            router.push('/dashboard/feed');
+            return;
+          }
+          
+          // Editor trying to access admin route
+          if (requiredRole === 'admin' && user.role === 'editor') {
+            router.push('/dashboard/feed');
+            return;
           }
         }
       }
@@ -51,7 +58,7 @@ export default function withAuth<P extends object>(
     }
 
     // Don't render if user doesn't have required role
-    if (requiredRole && user?.role !== requiredRole) {
+    if (requiredRole === 'admin' && user?.role !== 'admin') {
       return null;
     }
 

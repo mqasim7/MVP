@@ -1,9 +1,8 @@
 // frontend/src/lib/api.ts (updated)
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { getCookie, setCookie, deleteCookie } from 'cookies-next';
 
 // API base URL - change this to match your backend URL
-const API_URL = 'http://localhost:4000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
 // Create axios instance
 const api = axios.create({
@@ -16,7 +15,7 @@ const api = axios.create({
 // Add auth token to requests
 api.interceptors.request.use(
   (config: any) => {
-    const token = getCookie('token');
+    const token = localStorage.getItem('token');
     if (token && config.headers) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -33,7 +32,8 @@ api.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       // Handle unauthorized errors (e.g., token expired)
-      deleteCookie('token');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       window.location.href = '/auth/login';
     }
     return Promise.reject(error);
@@ -45,11 +45,12 @@ export const authApi = {
   login: async (email: string, password: string) => {
     try {
       const response = await api.post('/auth/login', { email, password });
-      // Store token in cookie
-      setCookie('token', response.data.accessToken, {
-        maxAge: 60 * 60 * 24, // 1 day
-        path: '/',
-      });
+      const { accessToken, user } = response.data;
+      console.log(response);
+      // Store token and user in localStorage
+      localStorage.setItem('token', accessToken);
+      localStorage.setItem('user', JSON.stringify(response));
+      
       return response.data;
     } catch (error) {
       throw error;
@@ -57,7 +58,8 @@ export const authApi = {
   },
   
   logout: () => {
-    deleteCookie('token');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     window.location.href = '/auth/login';
   },
   
