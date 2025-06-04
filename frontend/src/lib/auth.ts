@@ -14,7 +14,7 @@ export const removeAuthToken = (): void => {
 
 export const getStoredUser = (): User | null => {
   const userStr = localStorage.getItem(USER_KEY);
-  console.log(userStr);
+  
   if (!userStr) return null;
   
   try {

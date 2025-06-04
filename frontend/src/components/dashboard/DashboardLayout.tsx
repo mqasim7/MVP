@@ -64,13 +64,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </div>
               </label>
               <ul tabIndex={0} className="mt-3 z-[1] p-2 text-black shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-                <li><a style={{ zIndex: 100 }} onClick={() => logout()}>Logout</a></li>
+                <li><a onClick={() => logout()}>Logout</a></li>
               </ul>
             </div>
           </div>
         </header>
         
-        <main className="flex-1 p-4 overflow-y-auto pb-16 lg:pb-4" style={{ zIndex: -1 }}>
+        <main className="flex-1 p-4 overflow-y-auto pb-16 lg:pb-4" >
           {children}
         </main>
       </div>

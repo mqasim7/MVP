@@ -46,7 +46,6 @@ export const authApi = {
     try {
       const response = await api.post('/auth/login', { email, password });
       const { accessToken, user } = response.data;
-      console.log(response);
       // Store token and user in localStorage
       localStorage.setItem('token', accessToken);
       localStorage.setItem('user', JSON.stringify(response));

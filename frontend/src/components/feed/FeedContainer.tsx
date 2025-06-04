@@ -71,10 +71,18 @@ const FeedContainer: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
+  // Header visibility states
+  const [isHeaderVisible, setIsHeaderVisible] = useState<boolean>(true);
+  const [lastScrollY, setLastScrollY] = useState<number>(0);
+  const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('up');
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const [isManuallyHidden, setIsManuallyHidden] = useState<boolean>(false);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const scrollTimeoutRef = useRef<number | null>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const headerTimeoutRef = useRef<number | null>(null);
   
   // Check if mobile
   useEffect(() => {
@@ -86,12 +94,62 @@ const FeedContainer: React.FC = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Monitor sidebar state (simplified)
+  useEffect(() => {
+    const drawerCheckbox = document.getElementById('main-drawer') as HTMLInputElement;
+    
+    const handleDrawerChange = () => {
+      if (drawerCheckbox) {
+        setIsSidebarOpen(drawerCheckbox.checked);
+      }
+    };
+
+    // Listen for drawer state changes
+    if (drawerCheckbox) {
+      drawerCheckbox.addEventListener('change', handleDrawerChange);
+      // Check initial state
+      setIsSidebarOpen(drawerCheckbox.checked);
+    }
+
+    // Also listen for clicks on the drawer overlay to close sidebar
+    const handleDocumentClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('drawer-overlay')) {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleDocumentClick);
+
+    return () => {
+      if (drawerCheckbox) {
+        drawerCheckbox.removeEventListener('change', handleDrawerChange);
+      }
+      document.removeEventListener('click', handleDocumentClick);
+    };
+  }, []);
   
   // Fetch feed items based on persona
   useEffect(() => {
     setFeedItems(mockFeedItems);
     setCurrentIndex(0);
   }, [selectedPersona]);
+  
+  // Toggle functions
+  const togglePersonaSection = () => {
+    setIsManuallyHidden(!isManuallyHidden);
+    if (isManuallyHidden) {
+      // When showing, also set header visible
+      setIsHeaderVisible(true);
+    }
+  };
+  
+  const showHeader = () => {
+    setIsHeaderVisible(true);
+    setIsManuallyHidden(false); // Also clear manual hide state
+    handleHeaderVisibility(0, true); // Force show
+  };
   
   // Apply platform filters
   useEffect(() => {
@@ -113,6 +171,46 @@ const FeedContainer: React.FC = () => {
       setCurrentIndex(0);
     }
   }, [platformFilters, feedItems, currentIndex]);
+  
+  // Header auto-hide logic
+  const handleHeaderVisibility = useCallback((scrollY: number, force?: boolean) => {
+    // If manually hidden, hide header
+    if (isManuallyHidden) {
+      setIsHeaderVisible(false);
+      return;
+    }
+
+    const scrollThreshold = 50; // Minimum scroll distance to trigger hide/show
+    const headerHeight = 200; // Approximate header height
+    
+    // Clear any existing timeout
+    if (headerTimeoutRef.current) {
+      clearTimeout(headerTimeoutRef.current);
+    }
+    
+    // If user scrolled past the header height, handle auto-hide
+    if (scrollY > headerHeight || force) {
+      const direction = scrollY > lastScrollY ? 'down' : 'up';
+      
+      // Only update if direction changed or significant scroll
+      if (direction !== scrollDirection || Math.abs(scrollY - lastScrollY) > scrollThreshold || force) {
+        setScrollDirection(direction);
+        
+        if (direction === 'down' && scrollY > lastScrollY + scrollThreshold) {
+          // Scrolling down - hide header
+          setIsHeaderVisible(false);
+        } else if (direction === 'up' && scrollY < lastScrollY - scrollThreshold) {
+          // Scrolling up - show header
+          setIsHeaderVisible(true);
+        }
+      }
+    } else {
+      // Near the top - always show header (unless manually hidden)
+      setIsHeaderVisible(true);
+    }
+    
+    setLastScrollY(scrollY);
+  }, [lastScrollY, scrollDirection, isManuallyHidden]);
   
   // Intersection Observer for autoplay
   useEffect(() => {
@@ -174,44 +272,49 @@ const FeedContainer: React.FC = () => {
     setCurrentIndex(index);
   }, [isMobile]);
   
-  // Handle scroll event on mobile
+  // Handle scroll event with header visibility
   const handleScroll = useCallback(() => {
-    if (!containerRef.current || !isMobile) return;
+    if (!containerRef.current) return;
     
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
+    const container = containerRef.current;
+    const scrollTop = container.scrollTop;
     
-    scrollTimeoutRef.current = window.setTimeout(() => {
-      if (!containerRef.current) return;
-      
-      const container = containerRef.current;
-      const scrollTop = container.scrollTop;
-      const containerHeight = container.clientHeight;
-      
-      let closestIndex = 0;
-      let closestDistance = Infinity;
-      
-      itemRefs.current.forEach((item, index) => {
-        if (item) {
-          const itemTop = item.offsetTop;
-          const itemCenter = itemTop + (item.clientHeight / 2);
-          const containerCenter = scrollTop + (containerHeight / 2);
-          const distance = Math.abs(itemCenter - containerCenter);
-          
-          if (distance < closestDistance) {
-            closestDistance = distance;
-            closestIndex = index;
-          }
-        }
-      });
-      
-      if (closestIndex !== currentIndex) {
-        setCurrentIndex(closestIndex);
-        scrollToIndex(closestIndex);
+    // Handle header visibility
+    handleHeaderVisibility(scrollTop);
+    
+    // Handle mobile scroll snapping
+    if (isMobile) {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
-    }, 100);
-  }, [currentIndex, isMobile, scrollToIndex]);
+      
+      scrollTimeoutRef.current = window.setTimeout(() => {
+        const containerHeight = container.clientHeight;
+        
+        let closestIndex = 0;
+        let closestDistance = Infinity;
+        
+        itemRefs.current.forEach((item, index) => {
+          if (item) {
+            const itemTop = item.offsetTop;
+            const itemCenter = itemTop + (item.clientHeight / 2);
+            const containerCenter = scrollTop + (containerHeight / 2);
+            const distance = Math.abs(itemCenter - containerCenter);
+            
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestIndex = index;
+            }
+          }
+        });
+        
+        if (closestIndex !== currentIndex) {
+          setCurrentIndex(closestIndex);
+          scrollToIndex(closestIndex);
+        }
+      }, 100);
+    }
+  }, [currentIndex, isMobile, scrollToIndex, handleHeaderVisibility]);
   
   // Keyboard navigation for desktop
   useEffect(() => {
@@ -270,18 +373,50 @@ const FeedContainer: React.FC = () => {
   return (
     <div className="h-screen flex flex-col bg-white text-black">
       {/* Header with persona selector and filters */}
-      <div className="flex-shrink-0 p-4 bg-white/90 backdrop-blur-sm z-10">
-        <div className="max-w-6xl mx-auto">
-          <PersonaSelector 
-            value={selectedPersona} 
-            onChange={setSelectedPersona} 
-          />
-          <PlatformFilter 
-            platforms={platformFilters}
-            onChange={handleFilterChange}
-          />
+      {(isHeaderVisible && !isManuallyHidden) && (
+        <div 
+          className="flex-shrink-0 p-4 bg-white/95 backdrop-blur-sm transition-all duration-300 ease-in-out"
+          style={{
+            position: 'sticky',
+            top: 0
+          }}
+        >
+          <div className="max-w-6xl mx-auto">
+            <PersonaSelector 
+              value={selectedPersona} 
+              onChange={setSelectedPersona} 
+            />
+            <PlatformFilter 
+              platforms={platformFilters}
+              onChange={handleFilterChange}
+            />
+          </div>
         </div>
-      </div>
+      )}
+      
+      {/* Persona Section Toggle Button */}
+      <button
+        onClick={togglePersonaSection}
+        className="fixed top-20 right-4 bg-black/70 backdrop-blur-sm text-white p-3 rounded-full hover:bg-black/90 transition-colors shadow-xl border border-white/20 z-50"
+        aria-label={isManuallyHidden ? "Show persona controls" : "Hide persona controls"}
+      >
+        {isManuallyHidden ? (
+          <ChevronDown size={24} />
+        ) : (
+          <ChevronUp size={24} />
+        )}
+      </button>
+      
+      {/* Show header button (when header is hidden and not manually toggled) */}
+      {!isHeaderVisible && !isManuallyHidden && (
+        <button
+          onClick={showHeader}
+          className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm hover:bg-black/70 transition-colors"
+        >
+          <ChevronUp size={16} className="inline mr-1" />
+          Show Controls
+        </button>
+      )}
       
       {/* Feed container */}
       <div className="flex-1 relative overflow-hidden">
@@ -294,6 +429,7 @@ const FeedContainer: React.FC = () => {
             filteredItems.map((item, index) => (
               <div
                 key={item.id}
+                ref={el => itemRefs.current[index] = el}
                 className="h-full flex items-center justify-center snap-start"
                 data-index={index}
               >
@@ -315,11 +451,11 @@ const FeedContainer: React.FC = () => {
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
                 <h2 className="text-xl font-bold mb-2">No content found</h2>
-                <p className="text-white/70 mb-4">
+                <p className="text-gray-600 mb-4">
                   No content matches your current filter selection.
                 </p>
                 <button 
-                  className="btn bg-white text-black hover:bg-white/90"
+                  className="btn bg-black text-white hover:bg-gray-800"
                   onClick={() => setPlatformFilters({
                     mojo: true,
                     instagram: true,
@@ -338,7 +474,7 @@ const FeedContainer: React.FC = () => {
           <>
             <button
               onClick={goToPrevious}
-              className={`absolute left-8 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-white/20 transition-all ${
+              className={`absolute left-8 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition-all ${
                 currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''
               }`}
               disabled={currentIndex === 0}
@@ -348,7 +484,7 @@ const FeedContainer: React.FC = () => {
             
             <button
               onClick={goToNext}
-              className={`absolute right-8 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-white/20 transition-all ${
+              className={`absolute right-8 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition-all ${
                 currentIndex === filteredItems.length - 1 ? 'opacity-50 cursor-not-allowed' : ''
               }`}
               disabled={currentIndex === filteredItems.length - 1}
@@ -357,22 +493,6 @@ const FeedContainer: React.FC = () => {
             </button>
           </>
         )}
-        
-        {/* Progress indicator */}
-        {/* {filteredItems.length > 1 && (
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-1 z-10">
-            {filteredItems.map((_, index) => (
-              <div
-                key={index}
-                className={`w-1 h-12 rounded-full transition-all ${
-                  index === currentIndex
-                    ? 'bg-white w-2'
-                    : 'bg-white/30'
-                }`}
-              />
-            ))}
-          </div>
-        )} */}
         
         {/* Swipe hint for mobile */}
         {isMobile && filteredItems.length > 1 && (
