@@ -1,13 +1,14 @@
-// frontend/src/components/admin/UserManagement.tsx (updated)
+// frontend/src/components/admin/UserManagement.tsx (updated with API integration)
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, Search, Filter, MoreVertical,
   ShieldCheck, ShieldX, Mail, Calendar, CheckCircle, 
-  XCircle, Eye, Lock, Clock, Users, Building2
+  XCircle, Eye, Lock, Clock, Users, Building2, AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import { userApi, companyApi } from '@/lib/api';
 
 interface Company {
   id: number;
@@ -36,6 +37,7 @@ export default function UserManagement() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [companyFilter, setCompanyFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
@@ -49,72 +51,31 @@ export default function UserManagement() {
     sendInvite: true
   });
   
-  // Mock data
-  const mockCompanies: Company[] = [
-    { id: 1, name: 'Lululemon', status: 'active' },
-    { id: 2, name: 'Nike Marketing', status: 'active' },
-    { id: 3, name: 'Adidas Digital', status: 'active' },
-    { id: 4, name: 'Under Armour', status: 'inactive' },
-  ];
-
-  const mockUsers: User[] = [
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john.doe@lululemon.com',
-      role: 'admin',
-      status: 'active',
-      department: 'IT',
-      company_id: 1,
-      company_name: 'Lululemon',
-      last_login: '2025-05-16T14:22:30',
-      created_at: '2024-01-10'
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane.smith@nike.com',
-      role: 'editor',
-      status: 'active',
-      department: 'Marketing',
-      company_id: 2,
-      company_name: 'Nike Marketing',
-      last_login: '2025-05-15T09:45:12',
-      created_at: '2024-01-15'
-    },
-    {
-      id: 3,
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@nike.com',
-      role: 'viewer',
-      status: 'pending',
-      department: 'Content',
-      company_id: 2,
-      company_name: 'Nike Marketing',
-      created_at: '2025-05-15'
-    },
-    {
-      id: 4,
-      name: 'Michael Chen',
-      email: 'michael.chen@adidas.com',
-      role: 'viewer',
-      status: 'active',
-      department: 'Design',
-      company_id: 3,
-      company_name: 'Adidas Digital',
-      last_login: '2025-05-14T16:30:45',
-      created_at: '2024-02-05'
-    }
-  ];
-
+  // Load users and companies
   useEffect(() => {
-    // Simulate API calls
-    setTimeout(() => {
-      setCompanies(mockCompanies);
-      setUsers(mockUsers);
-      setIsLoading(false);
-    }, 1000);
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Load users and companies in parallel
+      const [usersResponse, companiesResponse] = await Promise.all([
+        userApi.getAll(),
+        companyApi.getAll()
+      ]);
+      
+      setUsers(usersResponse);
+      setCompanies(companiesResponse);
+    } catch (error: any) {
+      console.error('Error loading data:', error);
+      setError(error.response?.data?.message || 'Failed to load users and companies');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Filter users
   const filteredUsers = users.filter(user => {
@@ -173,34 +134,37 @@ export default function UserManagement() {
       
       if (editingUser) {
         // Update user
-        const updatedUser: User = {
-          ...editingUser,
-          ...formData,
-          company_id: formData.company_id ? parseInt(formData.company_id) : undefined,
-          company_name: company?.name,
+        await userApi.update(editingUser.id, {
+          name: formData.name,
+          email: formData.email,
           role: formData.role,
+          department: formData.department,
+          company_id: formData.company_id ? parseInt(formData.company_id) : undefined,
           status: formData.status
-        };
-        
-        setUsers(prev => prev.map(u => u.id === editingUser.id ? updatedUser : u));
+        });
       } else {
         // Create user
-        const newUser: User = {
-          id: Date.now(),
-          ...formData,
-          company_id: formData.company_id ? parseInt(formData.company_id) : undefined,
-          company_name: company?.name,
+        await userApi.create({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
           role: formData.role,
+          department: formData.department,
+          company_id: formData.company_id ? parseInt(formData.company_id) : undefined,
           status: formData.status,
-          created_at: new Date().toISOString().split('T')[0]
-        };
-        
-        setUsers(prev => [newUser, ...prev]);
+          sendInvite: formData.sendInvite
+        });
       }
       
+      // Reload data after successful operation
+      await loadData();
       handleModalClose();
-    } catch (error) {
+      
+      // Show success message
+      alert(editingUser ? 'User updated successfully!' : 'User created successfully!');
+    } catch (error: any) {
       console.error('Error saving user:', error);
+      alert(error.response?.data?.message || 'Failed to save user. Please try again.');
     }
   };
 
@@ -208,9 +172,12 @@ export default function UserManagement() {
     if (!confirm('Are you sure you want to delete this user?')) return;
     
     try {
-      setUsers(prev => prev.filter(u => u.id !== userId));
-    } catch (error) {
+      await userApi.delete(userId);
+      await loadData(); // Reload data
+      alert('User deleted successfully!');
+    } catch (error: any) {
       console.error('Error deleting user:', error);
+      alert(error.response?.data?.message || 'Failed to delete user. Please try again.');
     }
   };
 
@@ -218,11 +185,29 @@ export default function UserManagement() {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     
     try {
-      setUsers(prev => prev.map(u => 
-        u.id === userId ? { ...u, status: newStatus as any } : u
-      ));
-    } catch (error) {
+      await userApi.update(userId, { status: newStatus });
+      await loadData(); // Reload data
+      alert(`User ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`);
+    } catch (error: any) {
       console.error('Error updating user status:', error);
+      alert(error.response?.data?.message || 'Failed to update user status. Please try again.');
+    }
+  };
+
+  const handlePasswordReset = async (userId: number, userName: string) => {
+    if (!confirm(`Are you sure you want to reset the password for ${userName}?`)) return;
+    
+    try {
+      const response = await userApi.resetPassword(userId);
+      
+      if (response.password) {
+        alert(`Password reset successfully! New password: ${response.password}\n\nPlease share this with the user securely.`);
+      } else {
+        alert('Password reset email sent to the user successfully!');
+      }
+    } catch (error: any) {
+      console.error('Error resetting password:', error);
+      alert(error.response?.data?.message || 'Failed to reset password. Please try again.');
     }
   };
 
@@ -241,6 +226,20 @@ export default function UserManagement() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="container mx-auto py-10">
+        <div className="alert alert-error">
+          <AlertCircle size={20} />
+          <span>{error}</span>
+          <button className="btn btn-sm" onClick={loadData}>
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
@@ -249,10 +248,10 @@ export default function UserManagement() {
           <p className="text-base-content/70">Manage user accounts and permissions across companies</p>
         </div>
         <div className="mt-4 lg:mt-0">
-          <button className="btn btn-primary" onClick={() => handleModalOpen()}>
+          <Link href="/admin/users/new" className="btn btn-primary">
             <Plus size={16} />
             Add New User
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -400,8 +399,8 @@ export default function UserManagement() {
                           <MoreVertical size={16} />
                         </div>
                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                          <li><a onClick={() => handleModalOpen(user)}><Edit size={14} className="mr-2" /> Edit User</a></li>
-                          <li><a><Lock size={14} className="mr-2" /> Reset Password</a></li>
+                          <li><a href={`/admin/users/${user.id}/edit`}><Edit size={14} className="mr-2" /> Edit User</a></li>
+                          <li><a onClick={() => handlePasswordReset(user.id, user.name)}><Lock size={14} className="mr-2" /> Reset Password</a></li>
                           <li><a onClick={() => handleStatusToggle(user.id, user.status)} className={user.status === 'active' ? 'text-error' : 'text-success'}>
                             {user.status === 'active' ? (
                               <><XCircle size={14} className="mr-2" /> Deactivate</>
@@ -421,7 +420,18 @@ export default function UserManagement() {
                     <div className="flex flex-col items-center gap-2">
                       <Users size={48} className="opacity-20" />
                       <h3 className="font-semibold">No users found</h3>
-                      <p className="text-base-content/70">Try adjusting your search or filters</p>
+                      <p className="text-base-content/70">
+                        {searchTerm || roleFilter !== 'all' || statusFilter !== 'all' || companyFilter !== 'all'
+                          ? 'Try adjusting your search or filters'
+                          : 'Start by adding your first user'
+                        }
+                      </p>
+                      {!searchTerm && roleFilter === 'all' && statusFilter === 'all' && companyFilter === 'all' && (
+                        <Link href="/admin/users/new" className="btn btn-primary mt-2">
+                          <Plus size={16} className="mr-2" />
+                          Add First User
+                        </Link>
+                      )}
                     </div>
                   </td>
                 </tr>

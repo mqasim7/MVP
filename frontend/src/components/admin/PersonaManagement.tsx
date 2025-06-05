@@ -94,9 +94,6 @@ export default function PersonaManagement() {
       return matchesSearch && matchesTab;
     });
 
-  // Persona creation modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   return (
     <div className="container mx-auto">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
@@ -105,10 +102,10 @@ export default function PersonaManagement() {
           <p className="text-base-content/70">Create and manage audience personas for targeted content</p>
         </div>
         <div className="mt-4 lg:mt-0">
-          <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
+          <Link href="/admin/personas/new" className="btn btn-primary">
             <Plus size={16} />
             Create New Persona
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -223,112 +220,11 @@ export default function PersonaManagement() {
             <Users size={64} className="opacity-20 mb-4" />
             <h3 className="text-lg font-semibold">No personas found</h3>
             <p className="text-base-content/70">Try adjusting your search or create a new persona</p>
-            <button 
-              className="btn btn-primary mt-4"
-              onClick={() => setIsModalOpen(true)}
-            >
-              <Plus size={16} className="mr-2" />
-              Create New Persona
-            </button>
           </div>
         )}
       </div>
 
-      {/* Persona Creation Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="modal-box w-11/12 max-w-3xl">
-            <h3 className="font-bold text-lg">Create New Persona</h3>
-            <button 
-              className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-              onClick={() => setIsModalOpen(false)}
-            >
-              ✕
-            </button>
-            
-            <div className="py-4">
-              <form>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Persona Name</span>
-                    </label>
-                    <input type="text" placeholder="e.g. Mindful Movers (Gen Z)" className="input input-bordered w-full" />
-                  </div>
-                  
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Age Range</span>
-                    </label>
-                    <input type="text" placeholder="e.g. 18-24" className="input input-bordered w-full" />
-                  </div>
-                </div>
-                
-                <div className="form-control w-full mt-4">
-                  <label className="label">
-                    <span className="label-text">Description</span>
-                  </label>
-                  <textarea 
-                    className="textarea textarea-bordered h-24" 
-                    placeholder="Describe this persona's key characteristics and behaviors"
-                  ></textarea>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Key Platforms</span>
-                    </label>
-                    <select className="select select-bordered w-full" multiple>
-                      <option value="instagram">Instagram</option>
-                      <option value="tiktok">TikTok</option>
-                      <option value="youtube">YouTube</option>
-                      <option value="facebook">Facebook</option>
-                      <option value="linkedin">LinkedIn</option>
-                      <option value="website">Website</option>
-                    </select>
-                    <label className="label">
-                      <span className="label-text-alt">Hold Ctrl/Cmd to select multiple</span>
-                    </label>
-                  </div>
-                  
-                  <div className="form-control w-full">
-                    <label className="label">
-                      <span className="label-text">Status</span>
-                    </label>
-                    <select className="select select-bordered w-full">
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="form-control w-full mt-4">
-                  <label className="label">
-                    <span className="label-text">Interests (comma separated)</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Yoga, Mindfulness, Sustainability" 
-                    className="input input-bordered w-full" 
-                  />
-                </div>
-                
-                <div className="modal-action mt-6">
-                  <button 
-                    type="button" 
-                    className="btn btn-ghost"
-                    onClick={() => setIsModalOpen(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn btn-primary">Create Persona</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+     
     </div>
   );
 }
