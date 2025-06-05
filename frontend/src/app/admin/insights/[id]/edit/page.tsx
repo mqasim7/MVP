@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, FileText, Save, Trash2, AlertCircle, Tag, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { insightsApi, companyApi } from '@/lib/api';
+import RichTextEditor from '@/components/ui/RichTextEditor';
 
 interface Insight {
   id: number;
@@ -141,11 +142,12 @@ export default function EditInsightPage() {
       newErrors.description = 'Description must be at least 10 characters';
     }
 
-    // Content validation
+    // Content validation - check both HTML and plain text length
+    const plainTextContent = formData.content.replace(/<[^>]*>/g, '').trim();
     if (!formData.content.trim()) {
       newErrors.content = 'Content is required';
-    } else if (formData.content.trim().length < 50) {
-      newErrors.content = 'Content must be at least 50 characters';
+    } else if (plainTextContent.length < 50) {
+      newErrors.content = 'Content must be at least 50 characters (excluding HTML tags)';
     }
 
     // Date validation
@@ -171,11 +173,20 @@ export default function EditInsightPage() {
     }
   };
 
-  const handleInputChange = (field: keyof Omit<FormData, 'tags' | 'actionable' | 'category'>, value: string) => {
+  const handleInputChange = (field: keyof Omit<FormData, 'tags' | 'actionable' | 'category' | 'content'>, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  // Separate handler for content from RichTextEditor
+  const handleContentChange = (value: string) => {
+    setFormData(prev => ({ ...prev, content: value }));
+    // Clear error when user starts typing
+    if (errors.content) {
+      setErrors(prev => ({ ...prev, content: '' }));
     }
   };
 
@@ -479,20 +490,21 @@ export default function EditInsightPage() {
               </div>
             </div>
 
-            {/* Content */}
+            {/* Content - Rich Text Editor */}
             <div className="mb-8">
               <h4 className="text-lg font-semibold mb-4">Content</h4>
               
               <div className="form-control w-full">
                 <label className="label">
-                  <span className="label-text font-medium">Full Content (HTML) *</span>
+                  <span className="label-text font-medium">Full Content *</span>
                 </label>
-                <textarea
-                  className={`textarea textarea-bordered w-full h-48 ${errors.content ? 'textarea-error' : ''}`}
-                  placeholder="<h2>Key Findings</h2><p>Your detailed insight content here...</p>"
+                <RichTextEditor
                   value={formData.content}
-                  onChange={(e) => handleInputChange('content', e.target.value)}
+                  onChange={handleContentChange}
+                  placeholder="Write your detailed insight content here. Use the toolbar to format text, add images, and create lists..."
                   disabled={isSaving}
+                  error={!!errors.content}
+                  className="w-full"
                 />
                 {errors.content && (
                   <label className="label">
@@ -500,7 +512,9 @@ export default function EditInsightPage() {
                   </label>
                 )}
                 <label className="label">
-                  <span className="label-text-alt">You can use HTML tags for formatting</span>
+                  <span className="label-text-alt">
+                    Use the formatting toolbar to add structure, emphasis, and images to your content
+                  </span>
                 </label>
               </div>
             </div>
@@ -556,9 +570,6 @@ export default function EditInsightPage() {
                   <span className="label-text font-medium">Trend</span>
                 </label>
                 <div className="input-group">
-                  {/* <span className="bg-success/20 px-3 flex items-center rounded-l-lg border border-r-0">
-                    <TrendingUp size={16} className="text-success" />
-                  </span> */}
                   <input
                     type="text"
                     placeholder="e.g. +27% engagement vs. Q1"
@@ -633,7 +644,7 @@ export default function EditInsightPage() {
               {/* Image URL */}
               <div className="form-control w-full mb-6">
                 <label className="label">
-                  <span className="label-text font-medium">Image URL</span>
+                  <span className="label-text font-medium">Header Image URL</span>
                 </label>
                 <input
                   type="url"
@@ -649,7 +660,9 @@ export default function EditInsightPage() {
                   </label>
                 )}
                 <label className="label">
-                  <span className="label-text-alt">Optional: URL to an image representing this insight</span>
+                  <span className="label-text-alt">
+                    Optional: URL to a header image for this insight. You can also add images directly in the content using the editor toolbar.
+                  </span>
                 </label>
               </div>
 
@@ -701,6 +714,15 @@ export default function EditInsightPage() {
                   <p className="text-base-content/70 line-clamp-2">
                     {formData.description || 'Not entered'}
                   </p>
+                </div>
+                <div className="md:col-span-2">
+                  <span className="font-medium">Content Preview:</span>
+                  <div 
+                    className="text-base-content/70 line-clamp-3 prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ 
+                      __html: formData.content || '<em>No content entered</em>' 
+                    }}
+                  />
                 </div>
                 <div>
                   <span className="font-medium">Actionable:</span>
