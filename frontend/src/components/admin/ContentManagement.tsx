@@ -389,20 +389,14 @@ export default function ContentManagement() {
                               <Edit size={14} className="mr-2" /> Edit
                             </a>
                           </li>
-                          {item.content_url && (
-                            <li>
-                              <a href={item.content_url} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink size={14} className="mr-2" /> View Content
-                              </a>
-                            </li>
-                          )}
-                          {item.status !== 'published' && (
+                          
+                          {/* {item.status !== 'published' && (
                             <li>
                               <a onClick={() => handlePublish(item.id, item.title)}>
                                 <CheckCircle size={14} className="mr-2" /> Publish
                               </a>
                             </li>
-                          )}
+                          )} */}
                           <li>
                             <a 
                               className="text-error"

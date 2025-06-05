@@ -36,7 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           
           {/* Admin Menu */}
           <ul className="menu menu-md rounded-box">
-            <li>
+            {/* <li>
               <Link 
                 href="/admin" 
                 className={pathname === '/admin' ? 'active' : ''}
@@ -45,7 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <Grid size={18} />
                 Dashboard
               </Link>
-            </li>
+            </li> */}
             <li>
               <Link 
                 href="/admin/companies" 

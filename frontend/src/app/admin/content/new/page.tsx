@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Building2, Save } from 'lucide-react';
-import { contentApi, companyApi } from '@/lib/api';
+import { contentApi, companyApi, personaApi } from '@/lib/api';
 
 interface ContentFormData {
   title: string;
@@ -25,11 +25,23 @@ interface CompanyOption {
   name: string;
 }
 
+interface PersonaOption {
+  id: number;
+  name: string;
+  description: string;
+  active: boolean;
+  company_id?: number;
+  company_name?: string;
+}
+
 export default function ContentCreationPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
+  const [personas, setPersonas] = useState<PersonaOption[]>([]);
+  const [filteredPersonas, setFilteredPersonas] = useState<PersonaOption[]>([]);
   const [fetchError, setFetchError] = useState('');
+  const [loadingPersonas, setLoadingPersonas] = useState(true);
   const [formData, setFormData] = useState<ContentFormData>({
     title: '',
     type: '',
@@ -40,28 +52,59 @@ export default function ContentCreationPage() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // Fetch companies for the dropdown
+  // Fetch companies and personas for the dropdowns
   useEffect(() => {
     let mounted = true;
-    const loadCompanies = async () => {
+    const loadData = async () => {
       try {
-        const response = await companyApi.getAll();
-        // Assume response.companies is an array of { id: string; name: string }
+        const [companiesResponse, personasResponse] = await Promise.all([
+          companyApi.getAll(),
+          personaApi.getAll()
+        ]);
+        
         if (mounted) {
-          setCompanies(response || []);
+          setCompanies(companiesResponse || []);
+          setPersonas(personasResponse || []);
+          // Initially show all active personas
+          setFilteredPersonas((personasResponse || []).filter((persona: PersonaOption) => persona.active));
         }
       } catch (err: any) {
-        console.error('Error fetching companies:', err);
+        console.error('Error fetching data:', err);
         if (mounted) {
-          setFetchError('Failed to load companies. Please try again later.');
+          setFetchError('Failed to load companies and personas. Please try again later.');
+        }
+      } finally {
+        if (mounted) {
+          setLoadingPersonas(false);
         }
       }
     };
-    loadCompanies();
+    loadData();
     return () => {
       mounted = false;
     };
   }, []);
+
+  // Filter personas when company changes
+  useEffect(() => {
+    if (formData.company_id) {
+      const companyPersonas = personas.filter(persona => 
+        persona.active && persona.company_id?.toString() === formData.company_id
+      );
+      setFilteredPersonas(companyPersonas);
+      
+      // Clear selected personas that don't belong to the new company
+      const validPersonaIds = companyPersonas.map(p => p.id.toString());
+      const filteredSelectedPersonas = formData.persona_id.filter(id => validPersonaIds.includes(id));
+      
+      if (filteredSelectedPersonas.length !== formData.persona_id.length) {
+        setFormData(prev => ({ ...prev, persona_id: filteredSelectedPersonas }));
+      }
+    } else {
+      // Show all active personas if no company is selected
+      setFilteredPersonas(personas.filter(persona => persona.active));
+    }
+  }, [formData.company_id, personas]);
 
   const isValidUrl = (value: string): boolean => {
     try {
@@ -118,7 +161,7 @@ export default function ContentCreationPage() {
   const handlePersonasChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = Array.from(e.target.selectedOptions).map((opt) => opt.value);
     setFormData((prev) => ({ ...prev, persona_id: selected }));
-    if (errors.personas) {
+    if (errors.persona_id) {
       setErrors((prev) => ({ ...prev, persona_id: '' }));
     }
   };
@@ -142,7 +185,8 @@ export default function ContentCreationPage() {
       };
       const response = await contentApi.create(payload);
       
-      // router.push(`/admin/content/${response.content.id}`);
+      alert('Content created successfully!');
+      router.push('/admin/content');
     } catch (error: any) {
       console.error('Error creating content:', error);
       if (error.response?.data?.errors) {
@@ -159,6 +203,10 @@ export default function ContentCreationPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getPersonaDisplayText = (persona: PersonaOption): string => {
+    return persona.company_name ? `${persona.name} (${persona.company_name})` : persona.name;
   };
 
   return (
@@ -179,6 +227,16 @@ export default function ContentCreationPage() {
           </div>
         </div>
       </div>
+
+      {/* Error Alert */}
+      {fetchError && (
+        <div className="alert alert-error mb-6">
+          <span>{fetchError}</span>
+          <button onClick={() => window.location.reload()} className="btn btn-sm">
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Form */}
       <div className="card bg-base-100 shadow-xl">
@@ -215,8 +273,9 @@ export default function ContentCreationPage() {
                 onChange={(e) => handleInputChange('type', e.target.value)}
                 disabled={isLoading}
               >
-                <option>Select Type</option>
+                <option value="">Select Type</option>
                 <option value="video">Video</option>
+                <option value="article">Article</option>
               </select>
               {errors.type && (
                 <label className="label">
@@ -242,33 +301,6 @@ export default function ContentCreationPage() {
               {errors.description && (
                 <label className="label">
                   <span className="label-text-alt text-error">{errors.description}</span>
-                </label>
-              )}
-            </div>
-
-            {/* Target Personas (Multi-Select) */}
-            <div className="form-control w-full mb-4">
-              <label className="label">
-                <span className="label-text font-medium">Target Personas *</span>
-              </label>
-              <select
-                className={`select select-bordered w-full ${errors.persona_id ? 'select-error' : ''}`}
-                multiple
-                value={formData.persona_id}
-                onChange={handlePersonasChange}
-                disabled={isLoading}
-              >
-                <option value="1">Mindful Movers (Gen Z)</option>
-                <option value="2">Active Professionals</option>
-                <option value="3">Outdoor Enthusiasts</option>
-                <option value="4">Yoga Practitioners</option>
-              </select>
-              <label className="label">
-                <span className="label-text-alt">Hold Ctrl/Cmd to select multiple</span>
-              </label>
-              {errors.persona_id && (
-                <label className="label">
-                  <span className="label-text-alt text-error">{errors.persona_id}</span>
                 </label>
               )}
             </div>
@@ -302,12 +334,65 @@ export default function ContentCreationPage() {
                   <span className="label-text-alt text-error">{errors.company_id}</span>
                 </label>
               )}
+              <label className="label">
+                <span className="label-text-alt">Select a company first to filter relevant personas</span>
+              </label>
+            </div>
+
+            {/* Target Personas (Multi-Select) */}
+            <div className="form-control w-full mb-4">
+              <label className="label">
+                <span className="label-text font-medium">Target Personas *</span>
+              </label>
+              {loadingPersonas ? (
+                <div className="flex items-center justify-center p-4 border rounded">
+                  <span className="loading loading-spinner loading-sm mr-2"></span>
+                  <span>Loading personas...</span>
+                </div>
+              ) : (
+                <select
+                  className={`select select-bordered w-full ${errors.persona_id ? 'select-error' : ''}`}
+                  multiple
+                  value={formData.persona_id}
+                  onChange={handlePersonasChange}
+                  disabled={isLoading}
+                  size={Math.min(filteredPersonas.length + 1, 6)}
+                >
+                  {filteredPersonas.length === 0 ? (
+                    <option disabled>
+                      {formData.company_id 
+                        ? 'No active personas found for selected company'
+                        : 'Select a company to see available personas'
+                      }
+                    </option>
+                  ) : (
+                    filteredPersonas.map((persona) => (
+                      <option key={persona.id} value={persona.id.toString()}>
+                        {getPersonaDisplayText(persona)}
+                      </option>
+                    ))
+                  )}
+                </select>
+              )}
+              <label className="label">
+                <span className="label-text-alt">
+                  Hold Ctrl/Cmd to select multiple. 
+                  {formData.persona_id.length > 0 && (
+                    <span className="font-medium"> Selected: {formData.persona_id.length}</span>
+                  )}
+                </span>
+              </label>
+              {errors.persona_id && (
+                <label className="label">
+                  <span className="label-text-alt text-error">{errors.persona_id}</span>
+                </label>
+              )}
             </div>
 
             {/* Content URL */}
             <div className="form-control w-full mb-4">
               <label className="label">
-                <span className="label-text font-medium">Content URL *</span>
+                <span className="label-text font-medium">Content URL</span>
               </label>
               <input
                 type="url"
@@ -322,7 +407,60 @@ export default function ContentCreationPage() {
                   <span className="label-text-alt text-error">{errors.url}</span>
                 </label>
               )}
+              <label className="label">
+                <span className="label-text-alt">Optional: Direct link to the content</span>
+              </label>
             </div>
+
+            {/* Preview Section */}
+            {(formData.title || formData.company_id || formData.persona_id.length > 0) && (
+              <div className="bg-base-200 rounded-lg p-4 mb-6">
+                <h4 className="font-medium mb-3">Content Preview</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium">Title:</span>
+                    <p className="text-base-content/70">{formData.title || 'Not entered'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Type:</span>
+                    <p className="text-base-content/70 capitalize">{formData.type || 'Not selected'}</p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Company:</span>
+                    <p className="text-base-content/70">
+                      {formData.company_id 
+                        ? companies.find(c => c.id === formData.company_id)?.name || 'Unknown'
+                        : 'Not selected'
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <span className="font-medium">Target Personas ({formData.persona_id.length}):</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {formData.persona_id.slice(0, 3).map((personaId) => {
+                        const persona = filteredPersonas.find(p => p.id.toString() === personaId);
+                        return persona ? (
+                          <span key={personaId} className="badge badge-primary badge-outline badge-xs">
+                            {persona.name}
+                          </span>
+                        ) : null;
+                      })}
+                      {formData.persona_id.length > 3 && (
+                        <span className="badge badge-primary badge-outline badge-xs">
+                          +{formData.persona_id.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {formData.description && (
+                    <div className="md:col-span-2">
+                      <span className="font-medium">Description:</span>
+                      <p className="text-base-content/70 line-clamp-2">{formData.description}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Actions */}
             <div className="card-actions justify-end mt-6 pt-4 border-t border-base-300">
@@ -336,7 +474,7 @@ export default function ContentCreationPage() {
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={isLoading}
+                disabled={isLoading || loadingPersonas}
               >
                 {isLoading && (
                   <span className="loading loading-spinner loading-sm mr-2"></span>
