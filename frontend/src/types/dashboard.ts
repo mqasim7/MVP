@@ -182,3 +182,16 @@ declare global {
     tags?: string[];
     relatedInsights?: InsightType[];
   }
+  
+  export interface Company {
+    id: number;
+    name: string;
+    description?: string;
+    industry?: string;
+    website?: string;
+    logo_url?: string;
+    status: 'active' | 'inactive';
+    user_count: number;
+    created_at: string;
+    updated_at: string;
+  }

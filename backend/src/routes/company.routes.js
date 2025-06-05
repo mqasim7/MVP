@@ -25,7 +25,7 @@ router.post(
     body('description').optional().isString().withMessage('Description must be a string'),
     body('industry').optional().isString().withMessage('Industry must be a string'),
     body('website').optional().isURL().withMessage('Website must be a valid URL'),
-    body('logo_url').optional().isURL().withMessage('Logo URL must be a valid URL'),
+    body('logo_url').optional().isString().withMessage('Logo URL must be a valid URL'),
     body('status').optional().isIn(['active', 'inactive']).withMessage('Invalid status')
   ],
   companyController.createCompany
@@ -39,7 +39,7 @@ router.put(
     body('description').optional().isString().withMessage('Description must be a string'),
     body('industry').optional().isString().withMessage('Industry must be a string'),
     body('website').optional().isURL().withMessage('Website must be a valid URL'),
-    body('logo_url').optional().isURL().withMessage('Logo URL must be a valid URL'),
+    body('logo_url').optional().isString().withMessage('Logo URL must be a valid URL'),
     body('status').optional().isIn(['active', 'inactive']).withMessage('Invalid status')
   ],
   companyController.updateCompany

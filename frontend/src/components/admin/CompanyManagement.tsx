@@ -128,12 +128,22 @@ export default function CompanyManagement() {
 
       {/* Search and Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div className="stat bg-base-100 shadow">
+          <div className="stat-title">Total Companies</div>
+          <div className="stat-value text-primary">{companies.length}</div>
+        </div>
+        
+        <div className="stat bg-base-100 shadow">
+          <div className="stat-title">Active Companies</div>
+          <div className="stat-value text-success">
+            {companies.filter(c => c.status === 'active').length}
+          </div>
+        </div>
+        
         <div className="md:col-span-2">
           <div className="form-control">
             <div className="input-group">
-              <span className="bg-base-200 px-2">
-                <Search size={18} />
-              </span>
+              
               <input 
                 type="text" 
                 placeholder="Search companies..." 
@@ -145,17 +155,7 @@ export default function CompanyManagement() {
           </div>
         </div>
         
-        <div className="stat bg-base-100 shadow">
-          <div className="stat-title">Total Companies</div>
-          <div className="stat-value text-primary">{companies.length}</div>
-        </div>
         
-        <div className="stat bg-base-100 shadow">
-          <div className="stat-title">Active Companies</div>
-          <div className="stat-value text-success">
-            {companies.filter(c => c.status === 'active').length}
-          </div>
-        </div>
       </div>
 
       {/* Companies Grid */}

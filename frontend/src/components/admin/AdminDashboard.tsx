@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, FileText, BarChart2, ArrowUpRight, 
   ThumbsUp, Eye, MessageSquare, Calendar, AlertTriangle,
@@ -9,6 +9,8 @@ import {
   Settings
 } from 'lucide-react';
 import Link from 'next/link';
+import { companyApi } from '@/lib/api';
+import { Company } from '@/types/dashboard';
 
 export default function AdminDashboard() {
   // Mock data for admin dashboard
@@ -19,26 +21,36 @@ export default function AdminDashboard() {
     { id: 4, title: 'Total Views', value: '24.5k', icon: <Eye size={20} />, change: '+18%', color: 'info' },
   ];
 
-  const recentContent = [
-    { id: 1, title: 'Summer Collection Preview', type: 'Video', date: 'May 18, 2025', status: 'Published' },
-    { id: 2, title: 'Mindfulness Practice Series', type: 'Article', date: 'May 20, 2025', status: 'Draft' },
-    { id: 3, title: 'Community Spotlight: Outdoor Yoga', type: 'Gallery', date: 'May 23, 2025', status: 'Scheduled' },
-    { id: 4, title: 'Product Launch: New Align Collection', type: 'Video', date: 'May 25, 2025', status: 'In Review' },
-  ];
+  const [companies, setCompanies] = useState<Company[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const recentInsights = [
-    { id: 1, title: 'Gen Z Content Trends Q2 2025', category: 'Content', actionable: true, date: '2025-05-15' },
-    { id: 2, title: 'Athleticwear Video Performance', category: 'Content', actionable: true, date: '2025-05-12' },
-    { id: 3, title: 'Wellness Content Strategy', category: 'Audience', actionable: false, date: '2025-05-10' },
-    { id: 4, title: 'Sustainability Messaging Impact', category: 'Engagement', actionable: false, date: '2025-05-07' },
-  ];
+  // const companies = [
+  //   { id: 1, name: 'Lululemon', users: 25, status: 'active', lastActivity: '2 hours ago' },
+  //   { id: 2, name: 'Nike Marketing', users: 12, status: 'active', lastActivity: '3 hours ago' },
+  //   { id: 3, name: 'Adidas Digital', users: 8, status: 'inactive', lastActivity: '2 days ago' },
+  //   { id: 4, name: 'Under Armour', users: 15, status: 'active', lastActivity: '1 day ago' },
+  // ];
 
-  const companies = [
-    { id: 1, name: 'Lululemon', users: 25, status: 'active', lastActivity: '2 hours ago' },
-    { id: 2, name: 'Nike Marketing', users: 12, status: 'active', lastActivity: '3 hours ago' },
-    { id: 3, name: 'Adidas Digital', users: 8, status: 'inactive', lastActivity: '2 days ago' },
-    { id: 4, name: 'Under Armour', users: 15, status: 'active', lastActivity: '1 day ago' },
-  ];
+  useEffect(() => {
+      loadCompanies();
+    }, []);
+  
+    const loadCompanies = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await companyApi.getAll();
+        setCompanies(response);
+      } catch (error: any) {
+        console.error('Error loading companies:', error);
+        setError(error.response?.data?.message || 'Failed to load companies');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   return (
     <div className="container mx-auto">
@@ -48,9 +60,9 @@ export default function AdminDashboard() {
           <p className="text-base-content/70">Manage content, personas, and users</p>
         </div>
         <div className="flex gap-3 mt-4 lg:mt-0">
-          <Link href="/admin/content/new" className="btn btn-primary">
+          <Link href="/admin/companies/new" className="btn btn-primary">
             <Plus size={16} />
-            New Content
+            New Company
           </Link>
           <Link href="/admin/users/new" className="btn btn-outline">
             <Plus size={16} />
@@ -79,7 +91,7 @@ export default function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Recent Content */}
-        <div className="card bg-base-100 shadow-xl">
+        {/* <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
             <div className="flex justify-between items-center mb-4">
               <h2 className="card-title">Recent Content</h2>
@@ -120,7 +132,7 @@ export default function AdminDashboard() {
               </table>
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
@@ -135,8 +147,8 @@ export default function AdminDashboard() {
               {companies.map((company) => (
                 <div key={company.id} className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
                   <div>
-                    <div className="font-medium">{company.name}</div>
-                    <div className="text-sm opacity-70">{company.users} users</div>
+                    <div className="font-medium"><Link href={`/admin/companies/${company.id}`}>{company.name}</Link></div>
+                    {/* <div className="text-sm opacity-70">{company.users} users</div> */}
                   </div>
                   <div className="text-right">
                     <div className={`badge ${
@@ -144,7 +156,6 @@ export default function AdminDashboard() {
                     }`}>
                       {company.status}
                     </div>
-                    <div className="text-xs opacity-70 mt-1">{company.lastActivity}</div>
                   </div>
                 </div>
               ))}
@@ -176,7 +187,7 @@ export default function AdminDashboard() {
       </div> */}
 
       {/* Recent Insights */}
-      <div className="card bg-base-100 shadow-xl">
+      {/* <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
             <div className="flex justify-between items-center mb-4">
               <h2 className="card-title">Recent Insights</h2>
@@ -205,7 +216,7 @@ export default function AdminDashboard() {
               ))}
             </div>
           </div>
-        </div>
+        </div> */}
     </div>
   );
 }

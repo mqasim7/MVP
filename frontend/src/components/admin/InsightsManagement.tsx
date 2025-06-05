@@ -243,9 +243,6 @@ export default function InsightsManagement() {
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="form-control flex-1">
           <div className="input-group">
-            <span className="bg-base-200 px-2">
-              <Search size={18} />
-            </span>
             <input 
               type="text" 
               placeholder="Search insights..." 
@@ -256,33 +253,11 @@ export default function InsightsManagement() {
           </div>
         </div>
         
-        <div className="flex gap-2">
-          <select 
-            className="select select-bordered" 
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-          >
-            <option value="all">All Categories</option>
-            <option value="Content">Content</option>
-            <option value="Audience">Audience</option>
-            <option value="Engagement">Engagement</option>
-            <option value="Conversion">Conversion</option>
-          </select>
-          
-          <select 
-            className="select select-bordered" 
-            value={actionableFilter}
-            onChange={(e) => setActionableFilter(e.target.value)}
-          >
-            <option value="all">All Insights</option>
-            <option value="true">Actionable Only</option>
-            <option value="false">Non-Actionable</option>
-          </select>
-        </div>
+       
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="stat bg-base-100 shadow">
           <div className="stat-title">Total Insights</div>
           <div className="stat-value text-primary">{insights.length}</div>
@@ -305,7 +280,7 @@ export default function InsightsManagement() {
             {new Set(insights.map(i => i.category)).size}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Insights Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

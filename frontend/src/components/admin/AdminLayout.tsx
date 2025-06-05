@@ -48,6 +48,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </li>
             <li>
               <Link 
+                href="/admin/companies" 
+                className={pathname === '/admin/companies' ? 'active' : ''}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Building2 size={18} />
+                Companies
+              </Link>
+            </li>
+            <li>
+              <Link 
                 href="/admin/content" 
                 className={pathname === '/admin/content' ? 'active' : ''}
                 onClick={() => setSidebarOpen(false)}
@@ -67,15 +77,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </Link>
             </li>
 
-
             <li>
               <Link 
-                href="/admin/companies" 
-                className={pathname === '/admin/companies' ? 'active' : ''}
+                href="/admin/insights" 
+                className={pathname === '/admin/insights' ? 'active' : ''}
                 onClick={() => setSidebarOpen(false)}
               >
-                <Building2 size={18} />
-                Companies
+                <FileText size={18} />
+                Insights Management
               </Link>
             </li>
 
@@ -92,14 +101,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             
           </ul>
           
-          <div className="mt-auto">
+          {/* <div className="mt-auto">
             <Link 
               href="/dashboard" 
               className="btn btn-outline w-full"
             >
               Back to Dashboard
             </Link>
-          </div>
+          </div> */}
         </div>
       </div>
       

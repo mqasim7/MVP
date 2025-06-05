@@ -82,9 +82,6 @@ export default function NewCompanyPage() {
     try {
       const response = await companyApi.create(formData);
       
-      // Show success message (you might want to use a toast library)
-      alert('Company created successfully!');
-      
       // Redirect to company detail page
       router.push(`/admin/companies/${response.company.id}`);
     } catch (error: any) {
@@ -179,7 +176,7 @@ export default function NewCompanyPage() {
                 <span className="label-text font-medium">Description</span>
               </label>
               <textarea
-                className={`textarea textarea-bordered h-24 ${errors.description ? 'textarea-error' : ''}`}
+                className={`textarea textarea-bordered w-full h-24 ${errors.description ? 'textarea-error' : ''}`}
                 placeholder="Brief description of the company and its business"
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
@@ -199,9 +196,7 @@ export default function NewCompanyPage() {
                   <span className="label-text font-medium">Website</span>
                 </label>
                 <div className="input-group">
-                  <span className="bg-base-200 px-3 flex items-center">
-                    <Globe size={16} />
-                  </span>
+                 
                   <input
                     type="url"
                     placeholder="https://company.com"

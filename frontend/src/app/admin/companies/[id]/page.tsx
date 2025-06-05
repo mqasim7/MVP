@@ -190,9 +190,6 @@ export default function CompanyDetailPage() {
                 <div className={`badge ${company.status === 'active' ? 'badge-success' : 'badge-ghost'}`}>
                   {company.status}
                 </div>
-                {company.description && (
-                  <span className="text-base-content/70">{company.description}</span>
-                )}
               </div>
             </div>
           </div>
@@ -320,7 +317,7 @@ export default function CompanyDetailPage() {
             <div className="card-body">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="card-title">Company Users ({users.length})</h2>
-                <Link href={`/admin/users/new?company=${company.id}`} className="btn btn-primary btn-sm">
+                <Link href={`/admin/users/new`} className="btn btn-primary btn-sm">
                   <Plus size={14} />
                   Add User
                 </Link>
@@ -396,7 +393,7 @@ export default function CompanyDetailPage() {
                   <p className="text-base-content/70 mb-4">
                     Start by adding users to this company
                   </p>
-                  <Link href={`/admin/users/new?company=${company.id}`} className="btn btn-primary">
+                  <Link href={`/admin/users/new`} className="btn btn-primary">
                     <Plus size={16} className="mr-2" />
                     Add First User
                   </Link>

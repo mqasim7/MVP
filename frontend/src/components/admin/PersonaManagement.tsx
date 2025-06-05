@@ -116,9 +116,6 @@ export default function PersonaManagement() {
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="form-control flex-1">
           <div className="input-group">
-            <span className="bg-base-200 px-2">
-              <Search size={18} />
-            </span>
             <input 
               type="text" 
               placeholder="Search personas..." 

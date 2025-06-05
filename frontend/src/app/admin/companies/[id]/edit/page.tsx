@@ -124,7 +124,7 @@ export default function EditCompanyPage() {
     try {
       await companyApi.update(companyId, formData);
       
-      alert('Company updated successfully!');
+      // alert('Company updated successfully!');
       router.push(`/admin/companies/${companyId}`);
     } catch (error: any) {
       console.error('Error updating company:', error);
@@ -276,7 +276,7 @@ export default function EditCompanyPage() {
                 <span className="label-text font-medium">Description</span>
               </label>
               <textarea
-                className={`textarea textarea-bordered h-24 ${errors.description ? 'textarea-error' : ''}`}
+                className={`textarea textarea-bordered w-full h-24 ${errors.description ? 'textarea-error' : ''}`}
                 placeholder="Brief description of the company and its business"
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
@@ -296,9 +296,7 @@ export default function EditCompanyPage() {
                   <span className="label-text font-medium">Website</span>
                 </label>
                 <div className="input-group">
-                  <span className="bg-base-200 px-3 flex items-center">
-                    <Globe size={16} />
-                  </span>
+                  
                   <input
                     type="url"
                     placeholder="https://company.com"

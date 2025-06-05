@@ -27,6 +27,7 @@ const verifyToken = async (req, res, next) => {
     // Verify the token
     jwt.verify(token, authConfig.secret, async (err, decoded) => {
       if (err) {
+        console.log(err);
         return res.status(401).send({ message: "Unauthorized - invalid token" });
       }
       
