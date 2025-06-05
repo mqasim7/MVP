@@ -46,7 +46,8 @@ exports.createContent = async (req, res) => {
       author_id: req.userId,
       scheduled_date: req.body.scheduled_date,
       personas: req.body.personas,
-      platforms: req.body.platforms
+      platforms: req.body.platforms,
+      company_id: req.body.company_id
     });
     
     // Fetch the created content
@@ -86,7 +87,8 @@ exports.updateContent = async (req, res) => {
       thumbnail_url: req.body.thumbnail_url,
       scheduled_date: req.body.scheduled_date,
       personas: req.body.personas,
-      platforms: req.body.platforms
+      platforms: req.body.platforms,
+      company_id: req.body.company_id
     });
     
     // Fetch updated content
