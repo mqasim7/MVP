@@ -1,4 +1,4 @@
-// backend/src/models/user.model.js (updated)
+// backend/src/models/user.model.js  
 const db = require('./db');
 const bcrypt = require('bcryptjs');
 

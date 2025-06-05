@@ -1,4 +1,4 @@
-// frontend/src/lib/api.ts (updated)
+// frontend/src/lib/api.ts  
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
 // API base URL - change this to match your backend URL
@@ -102,7 +102,7 @@ export const companyApi = {
   }
 };
 
-// User management endpoints (updated)
+// User management endpoints  
 export const userApi = {
   getAll: async () => {
     return (await api.get('/users')).data;

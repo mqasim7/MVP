@@ -1,3 +1,4 @@
+// backend/src/routes/persona.routes.js  
 const express = require('express');
 const { body } = require('express-validator');
 const personaController = require('../controllers/persona.controller');
@@ -9,11 +10,14 @@ const router = express.Router();
 // All routes require authentication
 router.use(verifyToken);
 
-// Get all personas
+// Get all personas (supports company filtering via query parameter)
 router.get('/', personaController.getAllPersonas);
 
 // Get persona by ID
 router.get('/:id', personaController.getPersonaById);
+
+// Get personas by company
+router.get('/company/:companyId', personaController.getPersonasByCompany);
 
 // Create persona (editor or admin only)
 router.post(
@@ -23,6 +27,7 @@ router.post(
     body('name').trim().isLength({ min: 3 }).withMessage('Name must be at least 3 characters'),
     body('description').optional().isString().withMessage('Description must be a string'),
     body('age_range').optional().isString().withMessage('Age range must be a string'),
+    body('company_id').optional().isInt({ min: 1 }).withMessage('Company ID must be a valid integer'),
     body('active').optional().isBoolean().withMessage('Active must be a boolean'),
     body('platforms').optional().isArray().withMessage('Platforms must be an array'),
     body('interests').optional().isArray().withMessage('Interests must be an array')
@@ -38,6 +43,7 @@ router.put(
     body('name').optional().trim().isLength({ min: 3 }).withMessage('Name must be at least 3 characters'),
     body('description').optional().isString().withMessage('Description must be a string'),
     body('age_range').optional().isString().withMessage('Age range must be a string'),
+    body('company_id').optional().isInt({ min: 1 }).withMessage('Company ID must be a valid integer'),
     body('active').optional().isBoolean().withMessage('Active must be a boolean'),
     body('platforms').optional().isArray().withMessage('Platforms must be an array'),
     body('interests').optional().isArray().withMessage('Interests must be an array')

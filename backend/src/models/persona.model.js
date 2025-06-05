@@ -1,16 +1,18 @@
+// backend/src/models/persona.model.js 
 const db = require('./db');
 
 const Persona = {
   create: async (persona) => {
     const sql = `
-      INSERT INTO personas (name, description, age_range, active)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO personas (name, description, age_range, company_id, active)
+      VALUES (?, ?, ?, ?, ?)
     `;
     
     const params = [
       persona.name,
       persona.description,
       persona.age_range,
+      persona.company_id || null,
       persona.active !== undefined ? persona.active : true
     ];
     
@@ -64,13 +66,34 @@ const Persona = {
     return personaId;
   },
   
-  getAll: async () => {
-    const sql = `
-      SELECT * FROM personas
-      ORDER BY name ASC
+  getAll: async (filters = {}) => {
+    let sql = `
+      SELECT p.*, c.name as company_name
+      FROM personas p
+      LEFT JOIN companies c ON p.company_id = c.id
     `;
     
-    const personas = await db.query(sql);
+    const whereConditions = [];
+    const params = [];
+    
+    // Apply filters
+    if (filters.company_id) {
+      whereConditions.push('p.company_id = ?');
+      params.push(filters.company_id);
+    }
+    
+    if (filters.active !== undefined) {
+      whereConditions.push('p.active = ?');
+      params.push(filters.active);
+    }
+    
+    if (whereConditions.length > 0) {
+      sql += ` WHERE ${whereConditions.join(' AND ')}`;
+    }
+    
+    sql += ` ORDER BY p.name ASC`;
+    
+    const personas = await db.query(sql, params);
     
     // For each persona, get its platforms and interests
     const personasWithRelations = await Promise.all(personas.map(async (persona) => {
@@ -113,7 +136,12 @@ const Persona = {
   },
   
   findById: async (id) => {
-    const sql = 'SELECT * FROM personas WHERE id = ?';
+    const sql = `
+      SELECT p.*, c.name as company_name
+      FROM personas p
+      LEFT JOIN companies c ON p.company_id = c.id
+      WHERE p.id = ?
+    `;
     const results = await db.query(sql, [id]);
     
     if (!results.length) return null;
@@ -234,6 +262,11 @@ const Persona = {
     return await db.query(sql, [id]);
   },
   
+  // Get personas by company
+  getByCompany: async (companyId) => {
+    return await Persona.getAll({ company_id: companyId });
+  },
+  
   getPlatforms: async () => {
     return await db.query('SELECT * FROM platforms ORDER BY name ASC');
   },
@@ -244,3 +277,4 @@ const Persona = {
 };
 
 module.exports = Persona;
+

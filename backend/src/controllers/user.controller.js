@@ -1,4 +1,4 @@
-// backend/src/controllers/user.controller.js (updated)
+// backend/src/controllers/user.controller.js  
 const User = require('../models/user.model');
 const Company = require('../models/company.model');
 const logger = require('../utils/logger');

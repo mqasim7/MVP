@@ -3,9 +3,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Users, Save, Tag, Activity } from 'lucide-react';
+import { ArrowLeft, Users, Save, Tag, Activity, Building2 } from 'lucide-react';
 import Link from 'next/link';
-import { personaApi } from '@/lib/api';
+import { personaApi, companyApi } from '@/lib/api';
 
 interface FormData {
   name: string;
@@ -13,6 +13,7 @@ interface FormData {
   age_range: string;
   platforms: string[];
   interests: string[];
+  company_id: string;
   active: boolean;
 }
 
@@ -30,11 +31,18 @@ interface Interest {
   name: string;
 }
 
+interface Company {
+  id: number;
+  name: string;
+  status: 'active' | 'inactive';
+}
+
 export default function NewPersonaPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [interests, setInterests] = useState<Interest[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [fetchError, setFetchError] = useState('');
   const [formData, setFormData] = useState<FormData>({
@@ -43,28 +51,32 @@ export default function NewPersonaPage() {
     age_range: '',
     platforms: [],
     interests: [],
+    company_id: '',
     active: true
   });
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // Load platforms and interests on component mount
+  // Load platforms, interests, and companies on component mount
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoadingData(true);
         setFetchError('');
         
-        // Load platforms and interests in parallel
-        const [platformsResponse, interestsResponse] = await Promise.all([
+        // Load all data in parallel
+        const [platformsResponse, interestsResponse, companiesResponse] = await Promise.all([
           personaApi.getPlatforms(),
-          personaApi.getInterests()
+          personaApi.getInterests(),
+          companyApi.getAll()
         ]);
         
         setPlatforms(platformsResponse);
         setInterests(interestsResponse);
+        // Filter only active companies
+        setCompanies(companiesResponse.filter((company: Company) => company.status === 'active'));
       } catch (error: any) {
         console.error('Error loading data:', error);
-        setFetchError('Failed to load platforms and interests. Please try again later.');
+        setFetchError('Failed to load required data. Please try again later.');
       } finally {
         setLoadingData(false);
       }
@@ -95,6 +107,11 @@ export default function NewPersonaPage() {
       newErrors.age_range = 'Age range is required';
     }
 
+    // Company validation
+    if (!formData.company_id) {
+      newErrors.company_id = 'Please select a company';
+    }
+
     // Platforms validation
     if (formData.platforms.length === 0) {
       newErrors.platforms = 'Please select at least one platform';
@@ -109,11 +126,19 @@ export default function NewPersonaPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: keyof Omit<FormData, 'platforms' | 'interests' | 'active'>, value: string) => {
+  const handleInputChange = (field: keyof Omit<FormData, 'platforms' | 'interests' | 'active' | 'company_id'>, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const handleCompanyChange = (value: string) => {
+    setFormData(prev => ({ ...prev, company_id: value }));
+    // Clear error when user makes selection
+    if (errors.company_id) {
+      setErrors(prev => ({ ...prev, company_id: '' }));
     }
   };
 
@@ -159,6 +184,7 @@ export default function NewPersonaPage() {
         age_range: formData.age_range.trim(),
         platforms: formData.platforms,
         interests: formData.interests,
+        company_id: parseInt(formData.company_id),
         active: formData.active
       };
 
@@ -289,6 +315,39 @@ export default function NewPersonaPage() {
                       </label>
                     )}
                   </div>
+                </div>
+
+                {/* Company Selection - Full Width */}
+                <div className="form-control w-full mt-6">
+                  <label className="label">
+                    <span className="label-text font-medium">Company *</span>
+                  </label>
+                  <div className="input-group">
+                    <span className="bg-base-200 px-3 flex items-center">
+                      <Building2 size={16} className="text-base-content/70" />
+                    </span>
+                    <select
+                      className={`select select-bordered w-full ${errors.company_id ? 'select-error' : ''}`}
+                      value={formData.company_id}
+                      onChange={(e) => handleCompanyChange(e.target.value)}
+                      disabled={isLoading}
+                    >
+                      <option value="">Select a company</option>
+                      {companies.map((company) => (
+                        <option key={company.id} value={company.id.toString()}>
+                          {company.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {errors.company_id && (
+                    <label className="label">
+                      <span className="label-text-alt text-error">{errors.company_id}</span>
+                    </label>
+                  )}
+                  <label className="label">
+                    <span className="label-text-alt">This persona will be associated with the selected company</span>
+                  </label>
                 </div>
 
                 {/* Description */}
@@ -444,12 +503,21 @@ export default function NewPersonaPage() {
                     <p className="text-base-content/70">{formData.age_range || 'Not entered'}</p>
                   </div>
                   <div>
+                    <span className="font-medium">Company:</span>
+                    <p className="text-base-content/70">
+                      {formData.company_id 
+                        ? companies.find(c => c.id.toString() === formData.company_id)?.name || 'Unknown'
+                        : 'Not selected'
+                      }
+                    </p>
+                  </div>
+                  <div>
                     <span className="font-medium">Status:</span>
                     <div className={`badge badge-sm ${formData.active ? 'badge-success' : 'badge-ghost'}`}>
                       {formData.active ? 'Active' : 'Inactive'}
                     </div>
                   </div>
-                  <div>
+                  <div className="md:col-span-2">
                     <span className="font-medium">Description:</span>
                     <p className="text-base-content/70 line-clamp-2">
                       {formData.description || 'Not entered'}
