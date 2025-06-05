@@ -307,14 +307,14 @@ export default function PersonaManagement() {
                     </button>
                   </div>
                   <div className="flex gap-1">
-                    <button className="btn btn-ghost btn-sm">
+                    <Link href={`/admin/personas/${persona.id}`} className="btn btn-ghost btn-sm">
                       <Eye size={16} />
                       View
-                    </button>
-                    <button className="btn btn-ghost btn-sm">
+                    </Link>
+                    <Link href={`/admin/personas/${persona.id}/edit`} className="btn btn-ghost btn-sm">
                       <Edit size={16} />
                       Edit
-                    </button>
+                    </Link>
                     <button 
                       className="btn btn-ghost btn-sm text-error"
                       onClick={() => handleDelete(persona.id, persona.name)}

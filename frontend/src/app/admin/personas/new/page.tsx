@@ -323,9 +323,6 @@ export default function NewPersonaPage() {
                     <span className="label-text font-medium">Company *</span>
                   </label>
                   <div className="input-group">
-                    <span className="bg-base-200 px-3 flex items-center">
-                      <Building2 size={16} className="text-base-content/70" />
-                    </span>
                     <select
                       className={`select select-bordered w-full ${errors.company_id ? 'select-error' : ''}`}
                       value={formData.company_id}
