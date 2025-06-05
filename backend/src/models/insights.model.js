@@ -1,12 +1,36 @@
-// backend/src/models/insights.model.js (enhanced)
+// backend/src/models/insights.model.js (enhanced with company support)
 const db = require('./db');
+
+// Helper function to safely parse tags
+const parseTagsSafely = (tagsData) => {
+  if (!tagsData) return [];
+  
+  // If it's already an array, return it
+  if (Array.isArray(tagsData)) {
+    return tagsData;
+  }
+  
+  // If it's not a string, convert to string first
+  if (typeof tagsData !== 'string') {
+    return [];
+  }
+  
+  try {
+    // Try to parse as JSON first
+    const parsed = JSON.parse(tagsData);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    // If JSON parsing fails, treat as comma-separated string
+    return tagsData.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+  }
+};
 
 const Insights = {
   create: async (insight) => {
     const sql = `
       INSERT INTO insights 
-      (title, description, content, date, platform, trend, image_url, actionable, category, author_id, tags)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (title, description, content, date, platform, trend, image_url, actionable, category, author_id, company_id, tags)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
     const params = [
@@ -20,6 +44,7 @@ const Insights = {
       insight.actionable || false,
       insight.category,
       insight.author_id,
+      insight.company_id || null,
       insight.tags ? JSON.stringify(insight.tags) : null
     ];
     
@@ -29,9 +54,10 @@ const Insights = {
   
   getAll: async (filters = {}) => {
     let sql = `
-      SELECT i.*, u.name as author_name
+      SELECT i.*, u.name as author_name, c.name as company_name
       FROM insights i
       LEFT JOIN users u ON i.author_id = u.id
+      LEFT JOIN companies c ON i.company_id = c.id
     `;
     
     const whereConditions = [];
@@ -51,6 +77,11 @@ const Insights = {
     if (filters.actionable !== undefined) {
       whereConditions.push('i.actionable = ?');
       params.push(filters.actionable);
+    }
+    
+    if (filters.company_id) {
+      whereConditions.push('i.company_id = ?');
+      params.push(filters.company_id);
     }
     
     if (filters.search) {
@@ -87,18 +118,19 @@ const Insights = {
     
     const results = await db.query(sql, params);
     
-    // Parse tags JSON for each result
+    // Parse tags JSON for each result with error handling
     return results.map(insight => ({
       ...insight,
-      tags: insight.tags ? JSON.parse(insight.tags) : []
+      tags: parseTagsSafely(insight.tags)
     }));
   },
   
   findById: async (id) => {
     const sql = `
-      SELECT i.*, u.name as author_name, u.email as author_email
+      SELECT i.*, u.name as author_name, u.email as author_email, c.name as company_name
       FROM insights i
       LEFT JOIN users u ON i.author_id = u.id
+      LEFT JOIN companies c ON i.company_id = c.id
       WHERE i.id = ?
     `;
     const results = await db.query(sql, [id]);
@@ -107,8 +139,8 @@ const Insights = {
     
     const insight = results[0];
     
-    // Parse tags JSON
-    insight.tags = insight.tags ? JSON.parse(insight.tags) : [];
+    // Parse tags JSON with error handling
+    insight.tags = parseTagsSafely(insight.tags);
     
     // Get related insights (same category, exclude current)
     const relatedSql = `
@@ -154,9 +186,10 @@ const Insights = {
   
   getByCategory: async (category) => {
     const sql = `
-      SELECT i.*, u.name as author_name
+      SELECT i.*, u.name as author_name, c.name as company_name
       FROM insights i
       LEFT JOIN users u ON i.author_id = u.id
+      LEFT JOIN companies c ON i.company_id = c.id
       WHERE i.category = ?
       ORDER BY i.date DESC
     `;
@@ -164,15 +197,16 @@ const Insights = {
     
     return results.map(insight => ({
       ...insight,
-      tags: insight.tags ? JSON.parse(insight.tags) : []
+      tags: parseTagsSafely(insight.tags)
     }));
   },
   
   getByPlatform: async (platform) => {
     const sql = `
-      SELECT i.*, u.name as author_name
+      SELECT i.*, u.name as author_name, c.name as company_name
       FROM insights i
       LEFT JOIN users u ON i.author_id = u.id
+      LEFT JOIN companies c ON i.company_id = c.id
       WHERE i.platform = ? OR i.platform = 'Cross-platform'
       ORDER BY i.date DESC
     `;
@@ -184,12 +218,18 @@ const Insights = {
     }));
   },
   
+  // Get insights by company
+  getByCompany: async (companyId) => {
+    return await Insights.getAll({ company_id: companyId });
+  },
+  
   // Get actionable insights
   getActionable: async () => {
     const sql = `
-      SELECT i.*, u.name as author_name
+      SELECT i.*, u.name as author_name, c.name as company_name
       FROM insights i
       LEFT JOIN users u ON i.author_id = u.id
+      LEFT JOIN companies c ON i.company_id = c.id
       WHERE i.actionable = true
       ORDER BY i.date DESC
     `;
@@ -204,9 +244,10 @@ const Insights = {
   // Get insights by author
   getByAuthor: async (authorId) => {
     const sql = `
-      SELECT i.*, u.name as author_name
+      SELECT i.*, u.name as author_name, c.name as company_name
       FROM insights i
       LEFT JOIN users u ON i.author_id = u.id
+      LEFT JOIN companies c ON i.company_id = c.id
       WHERE i.author_id = ?
       ORDER BY i.date DESC
     `;
@@ -219,8 +260,8 @@ const Insights = {
   },
   
   // Get insights statistics
-  getStats: async () => {
-    const sql = `
+  getStats: async (companyId = null) => {
+    let sql = `
       SELECT 
         COUNT(*) as total_insights,
         SUM(CASE WHEN actionable = true THEN 1 ELSE 0 END) as actionable_insights,
@@ -229,16 +270,24 @@ const Insights = {
         DATE(MAX(date)) as latest_insight_date
       FROM insights
     `;
-    const results = await db.query(sql);
+    
+    const params = [];
+    if (companyId) {
+      sql += ' WHERE company_id = ?';
+      params.push(companyId);
+    }
+    
+    const results = await db.query(sql, params);
     return results.length ? results[0] : null;
   },
   
   // Search insights
   search: async (searchTerm, filters = {}) => {
     let sql = `
-      SELECT i.*, u.name as author_name
+      SELECT i.*, u.name as author_name, c.name as company_name
       FROM insights i
       LEFT JOIN users u ON i.author_id = u.id
+      LEFT JOIN companies c ON i.company_id = c.id
       WHERE (i.title LIKE ? OR i.description LIKE ? OR i.content LIKE ?)
     `;
     
@@ -253,6 +302,11 @@ const Insights = {
     if (filters.platform) {
       sql += ' AND (i.platform = ? OR i.platform = "Cross-platform")';
       params.push(filters.platform);
+    }
+    
+    if (filters.company_id) {
+      sql += ' AND i.company_id = ?';
+      params.push(filters.company_id);
     }
     
     sql += ' ORDER BY i.date DESC';

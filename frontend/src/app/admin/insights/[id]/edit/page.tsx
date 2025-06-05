@@ -556,9 +556,9 @@ export default function EditInsightPage() {
                   <span className="label-text font-medium">Trend</span>
                 </label>
                 <div className="input-group">
-                  <span className="bg-success/20 px-3 flex items-center rounded-l-lg border border-r-0">
+                  {/* <span className="bg-success/20 px-3 flex items-center rounded-l-lg border border-r-0">
                     <TrendingUp size={16} className="text-success" />
-                  </span>
+                  </span> */}
                   <input
                     type="text"
                     placeholder="e.g. +27% engagement vs. Q1"
