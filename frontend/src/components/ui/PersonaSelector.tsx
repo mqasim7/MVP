@@ -1,20 +1,40 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { PersonaSelectorProps, Persona } from '@/types/dashboard';
-
-// Sample data - in a real app this would come from an API or store
-const personas: Persona[] = [
-  { id: 1, name: 'Mindful Movers (Gen Z)', description: 'Health-conscious Gen Z focused on mindfulness and movement' },
-  { id: 2, name: 'Active Professionals', description: 'Career-focused individuals who prioritize fitness' },
-  { id: 3, name: 'Outdoor Enthusiasts', description: 'Adventure seekers who enjoy nature and outdoor activities' },
-  { id: 4, name: 'Yoga Practitioners', description: 'Dedicated yoga followers with focus on holistic wellness' }
-];
+import { personaApi } from '@/lib/api';
+import { getStoredUser } from '@/lib/auth';
 
 const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, className = '' }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [personas, setPersonas] = useState<Persona[]>([]);
   const selected = personas.find(p => p.id === value) || personas[0];
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const user = getStoredUser();
+
+  useEffect(() => {
+      loadData();
+    }, []);
   
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Load personas
+        const personasResponse = await personaApi.getByCompanyId(user!.company_id!);
+        
+        setPersonas(personasResponse);
+      } catch (error: any) {
+        console.error('Error loading data:', error);
+        setError(error.response?.data?.message || 'Failed to load personas');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -39,9 +59,8 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, clas
       <div className="text-sm uppercase font-medium mb-2">
         Select Persona
       </div>
-      
-      {/* Custom dropdown container */}
-      <div ref={dropdownRef} className="relative w-full">
+      {!isLoading && (
+        <div ref={dropdownRef} className="relative w-full">
         {/* Dropdown trigger */}
         <button 
           onClick={() => setIsOpen(!isOpen)}
@@ -53,7 +72,7 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, clas
         
         {/* Dropdown menu */}
         {isOpen && (
-          <div className="absolute w-full mt-1 bg-black text-white border border-white/20 rounded shadow-lg">
+            <div className="absolute top-full left-0 z-50 w-full mt-1 bg-black text-white border border-white/20 rounded shadow-lg max-h-60 overflow-y-auto">
             <ul className="py-1">
               {personas.map((persona) => (
                 <li key={persona.id}>
@@ -70,6 +89,7 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, clas
           </div>
         )}
       </div>
+      )}
       
       <div className="text-xs text-center mt-2 text-black/70">
         An insider peek at what your ICP is watching

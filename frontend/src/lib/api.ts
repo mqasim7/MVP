@@ -48,7 +48,7 @@ export const authApi = {
       const { accessToken, user } = response.data;
       // Store token and user in localStorage
       localStorage.setItem('token', accessToken);
-      localStorage.setItem('user', JSON.stringify(response));
+      localStorage.setItem('user', JSON.stringify(response.data));
       
       return response.data;
     } catch (error) {
@@ -143,6 +143,10 @@ export const contentApi = {
     return (await api.get(`/content/${id}`)).data;
   },
   
+  getByPersonaAndCompany: async (persona: number, companyId: number) => {
+    return (await api.get(`/content/persona/${persona}/company/${companyId}`)).data;
+  },
+
   create: async (contentData: any) => {
     return (await api.post('/content', contentData)).data;
   },
@@ -172,6 +176,10 @@ export const personaApi = {
   
   getById: async (id: number) => {
     return (await api.get(`/personas/${id}`)).data;
+  },
+
+  getByCompanyId: async (id: number) => {
+    return (await api.get(`/personas/company/${id}`)).data;
   },
   
   create: async (personaData: any) => {

@@ -88,7 +88,9 @@ exports.login = async (req, res) => {
       email: user.email,
       role: user.role,
       department: user.department,
-      accessToken: token
+      company_id: user.company_id,
+      accessToken: token,
+      companyName: user.company_name
     });
   } catch (error) {
     logger.error(`Login Error: ${error.message}`);

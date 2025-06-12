@@ -6,52 +6,54 @@ import SimplifiedVideoPlayer from './SimplifiedVideoPlayer';
 import PlatformFilter from '@/components/feed/PlatformFilter';
 import { FeedItem } from '@/types/dashboard';
 import { ChevronUp, ChevronDown } from 'lucide-react';
+import { getStoredUser } from '@/lib/auth';
+import { contentApi } from '@/lib/api';
 
 // Mock data with actual links to videos and social media posts
-const mockFeedItems: FeedItem[] = [
-  {
-    id: 1,
-    title: "Emotive Hooks Drive Scroll-Stop",
-    description: "Short, emotional hooks like \"What she said\" trending across Gen Z content",
-    date: "May 2025",
-    poster: "/api/placeholder/400/720",
-    platform: "Instagram",
-    socialLink: "https://www.instagram.com/reel/DFp2ZoZIBzO",
-    metrics: {
-      likes: "12.5k",
-      comments: "1.2k",
-      shares: "8.3k",
-    }
-  },
-  {
-    id: 2,
-    title: "Authentic Storytelling Wins",
-    description: "Real, unfiltered content outperforms heavily produced videos by 3x",
-    date: "May 2025",
-    poster: "/api/placeholder/400/720",
-    platform: "TikTok",
-    socialLink: "https://www.tiktok.com/@scout2015/video/7505949882511838495",
-    metrics: {
-      likes: "22.7k",
-      comments: "3.4k",
-      shares: "11.2k",
-    }
-  },
-  {
-    id: 3,
-    title: "Product in Motion",
-    description: "Dynamic product demos showing real benefits boost conversions",
-    date: "May 2025",
-    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-    poster: "/api/placeholder/400/720",
-    platform: "Mojo",
-    metrics: {
-      likes: "18.3k",
-      comments: "2.1k",
-      shares: "5.7k",
-    }
-  }
-];
+// const mockFeedItems: FeedItem[] = [
+//   {
+//     id: 1,
+//     title: "Emotive Hooks Drive Scroll-Stop",
+//     description: "Short, emotional hooks like \"What she said\" trending across Gen Z content",
+//     date: "May 2025",
+//     poster: "/api/placeholder/400/720",
+//     platform: "Instagram",
+//     socialLink: "https://www.instagram.com/reel/DFp2ZoZIBzO",
+//     metrics: {
+//       likes: "12.5k",
+//       comments: "1.2k",
+//       shares: "8.3k",
+//     }
+//   },
+//   {
+//     id: 2,
+//     title: "Authentic Storytelling Wins",
+//     description: "Real, unfiltered content outperforms heavily produced videos by 3x",
+//     date: "May 2025",
+//     poster: "/api/placeholder/400/720",
+//     platform: "TikTok",
+//     socialLink: "https://www.tiktok.com/@scout2015/video/7505949882511838495",
+//     metrics: {
+//       likes: "22.7k",
+//       comments: "3.4k",
+//       shares: "11.2k",
+//     }
+//   },
+//   {
+//     id: 3,
+//     title: "Product in Motion",
+//     description: "Dynamic product demos showing real benefits boost conversions",
+//     date: "May 2025",
+//     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+//     poster: "/api/placeholder/400/720",
+//     platform: "Mojo",
+//     metrics: {
+//       likes: "18.3k",
+//       comments: "2.1k",
+//       shares: "5.7k",
+//     }
+//   }
+// ];
 
 interface PlatformFilters {
   [key: string]: boolean;
@@ -65,11 +67,12 @@ const FeedContainer: React.FC = () => {
     instagram: true,
     tiktok: true
   });
-  const [feedItems, setFeedItems] = useState<FeedItem[]>(mockFeedItems);
-  const [filteredItems, setFilteredItems] = useState<FeedItem[]>(mockFeedItems);
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<FeedItem[]>([]);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const user = getStoredUser();
   
   // Header visibility states
   const [isHeaderVisible, setIsHeaderVisible] = useState<boolean>(true);
@@ -130,11 +133,48 @@ const FeedContainer: React.FC = () => {
     };
   }, []);
   
-  // Fetch feed items based on persona
-  useEffect(() => {
-    setFeedItems(mockFeedItems);
-    setCurrentIndex(0);
-  }, [selectedPersona]);
+  // Fetch feed items based on persona and company
+    useEffect(() => {
+        loadData();
+      }, [selectedPersona]);
+    
+      const loadData = async () => {
+        setIsLoading(true);
+        setError(null);
+      
+        try {
+          const resp = await contentApi.getByPersonaAndCompany(
+            selectedPersona,
+            user!.company_id!
+          );
+      
+          // normalize each record:
+          const normalized: FeedItem[] = resp.map((c: any) => ({
+            id:           c.id,
+            title:        c.title,
+            description:  c.description,
+            date:         c.publish_date || c.created_at,
+            poster:       c.thumbnail_url ?? '/api/placeholder/400/720',
+            videoUrl:     c.content_url,          
+            socialLink:   c.content_url,          
+            platforms:    c.platformNames || [],  
+            metrics: {
+              likes:    c.likes,
+              comments: c.comments,
+              shares:   c.shares,
+            }
+          }));
+      
+          setFeedItems(normalized);
+          setFilteredItems(normalized);
+          setCurrentIndex(0);
+        } catch (e: any) {
+          setError(e.response?.data?.message ?? "Failed to load feed");
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
   
   // Toggle functions
   const togglePersonaSection = () => {
@@ -151,27 +191,25 @@ const FeedContainer: React.FC = () => {
     handleHeaderVisibility(0, true); // Force show
   };
   
-  // Apply platform filters
   useEffect(() => {
-    const anyFilterActive = Object.values(platformFilters).some(value => value);
-    
-    if (!anyFilterActive) {
-      setFilteredItems(feedItems);
-      return;
-    }
-    
-    const filtered = feedItems.filter(item => {
-      const platform = item.platform.toLowerCase();
-      return platformFilters[platform];
-    });
-    
-    setFilteredItems(filtered.length > 0 ? filtered : []);
-    
-    if (filtered.length > 0 && currentIndex >= filtered.length) {
+    const anyOn = Object.values(platformFilters).some(Boolean);
+
+   const filtered = feedItems.filter(item => {
+     if (!anyOn) return true;
+
+     const platforms = Array.isArray(item.platforms) ? item.platforms : [];
+
+     return platforms
+       .map(name => name.toLowerCase())
+       .some(p => platformFilters[p]);
+   });
+
+    setFilteredItems(filtered);
+    if (currentIndex >= filtered.length) {
       setCurrentIndex(0);
     }
   }, [platformFilters, feedItems, currentIndex]);
-  
+
   // Header auto-hide logic
   const handleHeaderVisibility = useCallback((scrollY: number, force?: boolean) => {
     // If manually hidden, hide header

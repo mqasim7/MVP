@@ -179,3 +179,22 @@ exports.updateContentMetrics = async (req, res) => {
     res.status(500).send({ message: "Error updating content metrics" });
   }
 };
+
+/**
+ * GET /content/persona/:personaId/company/:companyId
+ */
+exports.getByPersonaAndCompany = async (req, res) => {
+  try {
+    const { personaId, companyId } = req.params;
+    const content = await Content.getByPersonaAndCompany(personaId, companyId);
+
+    if (!content.length) {
+      return res.status(404).send({ message: "No content found for that persona & company" });
+    }
+
+    res.status(200).send(content);
+  } catch (error) {
+    logger.error(`Get Content By Persona+Company Error: ${error.message}`);
+    res.status(500).send({ message: "Error retrieving content" });
+  }
+};

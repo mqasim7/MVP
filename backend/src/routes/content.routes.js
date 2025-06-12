@@ -12,6 +12,8 @@ router.use(verifyToken);
 // Get all content
 router.get('/', contentController.getAllContent);
 
+//get content by persona and company
+router.get('/persona/:personaId/company/:companyId', contentController.getByPersonaAndCompany);
 // Get content by ID
 router.get('/:id', contentController.getContentById);
 

@@ -7,6 +7,7 @@ import Sidebar from './Sidebar';
 import MobileNavigation from './MobileNavigation';
 import { getInitials } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
+import { getStoredUser } from '@/lib/auth';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -16,8 +17,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const pathname = usePathname();
-  const { user, logout } = useAuth();
-  
+  const {logout} = useAuth();
+  const user = getStoredUser();
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 1024);
@@ -54,13 +56,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             </label>
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-semibold">Dashboard</h1>
+            <h1 className="text-xl font-semibold">{ user!.companyName || 'Dashboard'}</h1>
           </div>
           <div className="flex-none gap-2">
             <div className="dropdown dropdown-end">
-              <label tabIndex={0} className="btn btn-ghost btn-circle avatar placeholder">
-                <div className="bg-neutral text-neutral-content rounded-full w-10">
-                  <span>{user ? getInitials(user.name) : 'U'}</span>
+              <label tabIndex={0} className="btn btn-ghost btn-circle p-0">
+                <div className="bg-neutral text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">
+                  <span>{ user!.name ? getInitials(user!.name) : 'U' }</span>
                 </div>
               </label>
               <ul tabIndex={0} className="mt-3 z-[1] p-2 text-black shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">

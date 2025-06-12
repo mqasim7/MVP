@@ -27,13 +27,6 @@ export default function AdminDashboard() {
     const [error, setError] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  // const companies = [
-  //   { id: 1, name: 'Lululemon', users: 25, status: 'active', lastActivity: '2 hours ago' },
-  //   { id: 2, name: 'Nike Marketing', users: 12, status: 'active', lastActivity: '3 hours ago' },
-  //   { id: 3, name: 'Adidas Digital', users: 8, status: 'inactive', lastActivity: '2 days ago' },
-  //   { id: 4, name: 'Under Armour', users: 15, status: 'active', lastActivity: '1 day ago' },
-  // ];
-
   useEffect(() => {
       loadCompanies();
     }, []);

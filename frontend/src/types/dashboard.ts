@@ -10,6 +10,7 @@ export interface User {
   company_id?: number;
   company_name?: string;
   department?: string;
+  companyName: string;
   status?: string;
   created_at?: string;
   last_login?: string;
@@ -23,18 +24,19 @@ export interface Metric {
   views?: string;
 }
 
+// in /types/dashboard.ts
 export interface FeedItem {
   id: number;
   title: string;
   description: string;
   date: string;
-  poster: string;
-  socialLink?: string;
-  videoUrl?: string;
-  platform: 'Instagram' | 'TikTok' | 'Mojo';
+  poster: string;           // thumbnail_url → poster
+  socialLink?: string;      // keep if you need “View on Instagram/TikTok”
+  videoUrl?: string;        // content_url → videoUrl  
+  platforms: string[];      // was platformNames
   metrics: Metric;
-  tags?: string[];
 }
+
 
 // Personas and targeting
 export interface Persona {
@@ -182,7 +184,7 @@ declare global {
     tags?: string[];
     relatedInsights?: InsightType[];
   }
-  
+
   export interface Company {
     id: number;
     name: string;

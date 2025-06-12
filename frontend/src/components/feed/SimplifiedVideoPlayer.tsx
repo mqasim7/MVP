@@ -6,8 +6,9 @@ import {
   ExternalLink, AlertCircle, Heart, MessageCircle, Share2
 } from 'lucide-react';
 import TikTokEmbed from './TikTokEmbed';
-import InstagramEmbed from './InstagramEmbed';
+// import InstagramEmbed from './InstagramEmbed';
 import { VideoPlayerProps } from '@/types/dashboard';
+import { InstagramEmbed } from 'react-social-media-embed';
 
 const SimplifiedVideoPlayer: React.FC<VideoPlayerProps & { isActive: boolean }> = ({
   src,
@@ -136,12 +137,16 @@ const SimplifiedVideoPlayer: React.FC<VideoPlayerProps & { isActive: boolean }> 
         
         {/* TikTok Embed */}
         {embedType === 'tiktok' && socialLink && (
-          <TikTokEmbed videoUrl={socialLink} autoplay={isActive && autoplay} />
+            <div className="absolute inset-0" style={{ display: 'flex', justifyContent: 'center' }}>
+                <TikTokEmbed videoUrl={socialLink} autoplay={isActive && autoplay} />
+            </div>
         )}
         
         {/* Instagram Embed */}
         {embedType === 'instagram' && socialLink && (
-          <InstagramEmbed postUrl={socialLink} autoplay={isActive && autoplay} />
+            <div className="absolute inset-0" style={{ display: 'flex', justifyContent: 'center' }}>
+                <InstagramEmbed url={socialLink} width={400}/>
+            </div>
         )}
         
         {/* Content Overlay */}

@@ -260,7 +260,43 @@ const Content = {
       WHERE id = ?
     `;
     return await db.query(sql, [id]);
-  }
+  },
+   
+    getByPersonaAndCompany: async (personaId, companyId) => {
+      const sql = `
+        SELECT 
+          c.*,
+          u.name AS author_name
+        FROM content c
+        LEFT JOIN users u ON c.author_id = u.id
+        JOIN content_personas cp ON c.id = cp.content_id
+        WHERE cp.persona_id = ? 
+          AND c.company_id = ?
+        ORDER BY c.publish_date DESC
+      `;
+      const rows = await db.query(sql, [personaId, companyId]);
+  
+      // load platforms & personas for each item
+      return await Promise.all(rows.map(async (item) => {
+        const [platforms, personas] = await Promise.all([
+          db.query(
+            `SELECT p.name FROM platforms p
+             JOIN content_platforms cp ON p.id=cp.platform_id
+             WHERE cp.content_id=?`,
+            [item.id]
+          ),
+          db.query(
+            `SELECT p.id,p.name FROM personas p
+             JOIN content_personas cp ON p.id=cp.persona_id
+             WHERE cp.content_id=?`,
+            [item.id]
+          )
+        ]);
+        const platformNames = platforms.map(r => r.name);
+        return { ...item, platformNames, personas };
+      }));
+    },  
+
 };
 
 module.exports = Content;

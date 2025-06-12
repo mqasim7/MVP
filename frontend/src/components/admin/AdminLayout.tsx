@@ -125,8 +125,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <div className="flex-none gap-2">
             <div className="dropdown dropdown-end">
-              <label tabIndex={0} className="btn btn-ghost btn-circle avatar placeholder">
-                <div className="bg-neutral text-neutral-content rounded-full w-10">
+              <label tabIndex={0} className="btn btn-ghost btn-circle p-0">
+                <div className="bg-neutral text-neutral-content rounded-full w-10 h-10 flex items-center justify-center">
                   <span>A</span>
                 </div>
               </label>
