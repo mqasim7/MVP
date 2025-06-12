@@ -239,6 +239,10 @@ export const insightsApi = {
   getByCategory: async (category: string) => {
     return (await api.get(`/insights?category=${category}`)).data;
   },
+
+  getByCompany: async (id: number) => {
+    return (await api.get(`/insights/company/${id}`)).data;
+  },
   
   getByPlatform: async (platform: string) => {
     return (await api.get(`/insights?platform=${platform}`)).data;

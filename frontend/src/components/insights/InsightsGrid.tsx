@@ -5,88 +5,90 @@ import { Search, Filter, ArrowDownWideNarrow } from 'lucide-react';
 import InsightCard from './InsightCard';
 import { Insight } from '@/types/dashboard';
 import { useRouter } from 'next/navigation';
+import { insightsApi } from '@/lib/api';
+import { getStoredUser } from '@/lib/auth';
 
 // Mock insights data
-const mockInsights: Insight[] = [
-  {
-    id: 1,
-    title: "Gen Z Content Trends Q2 2025",
-    description: "Analysis of top-performing content patterns across platforms",
-    date: "May 15, 2025",
-    platform: "Cross-platform",
-    trend: "+27% engagement vs. Q1",
-    actionable: true,
-    category: 'Content'
-  },
-  {
-    id: 2,
-    title: "Athleticwear Video Performance",
-    description: "How video product demos are outperforming static images",
-    date: "May 12, 2025",
-    platform: "Instagram",
-    trend: "+45% view completion rate",
-    actionable: true,
-    category: 'Content'
-  },
-  {
-    id: 3,
-    title: "Wellness Content Strategy",
-    description: "Mindfulness content resonating with core audience segments",
-    date: "May 10, 2025",
-    platform: "TikTok",
-    trend: "+38% follower growth",
-    actionable: false,
-    category: 'Audience'
-  },
-  {
-    id: 4,
-    title: "Sustainability Messaging Impact",
-    description: "How eco-conscious content is driving brand perception",
-    date: "May 7, 2025",
-    platform: "Cross-platform",
-    trend: "+19% positive sentiment",
-    actionable: false,
-    category: 'Engagement'
-  },
-  {
-    id: 5,
-    title: "Competitor Analysis: Activewear Brands",
-    description: "Benchmarking content strategy against key competitors",
-    date: "May 5, 2025",
-    platform: "Cross-platform",
-    trend: '',
-    actionable: true,
-    category: 'Content'
-  },
-  {
-    id: 6,
-    title: "Product Launch Performance",
-    description: "Metrics and insights from recent product campaigns",
-    date: "May 3, 2025",
-    platform: "Instagram",
-    trend: "+31% conversion rate",
-    actionable: true,
-    category: 'Conversion'
-  }
-];
+// const mockInsights: Insight[] = [
+//   {
+//     id: 1,
+//     title: "Gen Z Content Trends Q2 2025",
+//     description: "Analysis of top-performing content patterns across platforms",
+//     date: "May 15, 2025",
+//     platform: "Cross-platform",
+//     trend: "+27% engagement vs. Q1",
+//     actionable: true,
+//     category: 'Content'
+//   },
+//   {
+//     id: 2,
+//     title: "Athleticwear Video Performance",
+//     description: "How video product demos are outperforming static images",
+//     date: "May 12, 2025",
+//     platform: "Instagram",
+//     trend: "+45% view completion rate",
+//     actionable: true,
+//     category: 'Content'
+//   },
+//   {
+//     id: 3,
+//     title: "Wellness Content Strategy",
+//     description: "Mindfulness content resonating with core audience segments",
+//     date: "May 10, 2025",
+//     platform: "TikTok",
+//     trend: "+38% follower growth",
+//     actionable: false,
+//     category: 'Audience'
+//   },
+//   {
+//     id: 4,
+//     title: "Sustainability Messaging Impact",
+//     description: "How eco-conscious content is driving brand perception",
+//     date: "May 7, 2025",
+//     platform: "Cross-platform",
+//     trend: "+19% positive sentiment",
+//     actionable: false,
+//     category: 'Engagement'
+//   },
+//   {
+//     id: 5,
+//     title: "Competitor Analysis: Activewear Brands",
+//     description: "Benchmarking content strategy against key competitors",
+//     date: "May 5, 2025",
+//     platform: "Cross-platform",
+//     trend: '',
+//     actionable: true,
+//     category: 'Content'
+//   },
+//   {
+//     id: 6,
+//     title: "Product Launch Performance",
+//     description: "Metrics and insights from recent product campaigns",
+//     date: "May 3, 2025",
+//     platform: "Instagram",
+//     trend: "+31% conversion rate",
+//     actionable: true,
+//     category: 'Conversion'
+//   }
+// ];
 
 const InsightsGrid: React.FC = () => {
-  const [insights, setInsights] = useState<Insight[]>(mockInsights);
+  const [insights, setInsights] = useState<Insight[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filterMenuOpen, setFilterMenuOpen] = useState<boolean>(false);
   const [sortMenuOpen, setSortMenuOpen] = useState<boolean>(false);
   const router = useRouter();
-  
+  const user = getStoredUser();
   // Fetch insights (commented out for mock data)
   useEffect(() => {
-    /*
+    
     const fetchData = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await getInsights();
+        const data = await insightsApi.getByCompany(user!.company_id!);
         setInsights(data);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch insights');
@@ -97,10 +99,10 @@ const InsightsGrid: React.FC = () => {
     };
     
     fetchData();
-    */
+    
     
     // Using mock data for now
-    setInsights(mockInsights);
+    // setInsights(mockInsights);
   }, []);
   
   // Filter insights based on search term
