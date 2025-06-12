@@ -310,7 +310,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         {/* Instagram Embed */}
         {embedType === 'instagram' && socialLink && (
           <div className="absolute inset-0 w-full h-full">
-            <InstagramEmbed postUrl={socialLink} autoplay={autoplay} />
+            <InstagramEmbed postUrl={socialLink} />
             
             {/* External link button */}
             <button 
