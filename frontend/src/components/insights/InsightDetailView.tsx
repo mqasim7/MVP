@@ -4,6 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Calendar, TrendingUp, CheckCircle, Share2, Bookmark } from 'lucide-react';
 import { Insight } from '@/types/dashboard';
+import { format, parseISO } from 'date-fns';
 
 interface InsightDetailViewProps {
   insight: Insight;
@@ -103,7 +104,7 @@ const InsightDetailView: React.FC<InsightDetailViewProps> = ({
           <div className="flex flex-wrap items-center gap-4 text-sm mb-6">
             <div className="flex items-center">
               <Calendar size={16} className="mr-1 text-gray-500" />
-              <span>{insight.date}</span>
+              <span>{format(parseISO(insight.date),'MMMM d, yyyy')}</span>
             </div>
             
             {/* {insight.platform && (

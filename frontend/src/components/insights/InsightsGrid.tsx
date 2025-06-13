@@ -164,7 +164,7 @@ const InsightsGrid: React.FC = () => {
           />
         </div>
         
-        <div className="flex space-x-2">
+        {/* <div className="flex space-x-2">
           <div className="dropdown dropdown-end">
             <button 
               className="btn btn-outline btn-sm flex items-center gap-2"
@@ -206,7 +206,7 @@ const InsightsGrid: React.FC = () => {
               </ul>
             )}
           </div>
-        </div>
+        </div> */}
       </div>
       
       {/* Insights Grid */}

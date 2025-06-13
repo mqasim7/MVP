@@ -15,6 +15,7 @@
     "axios": "^1.9.0",
     "cookies-next": "^5.1.0",
     "daisyui": "^5.0.35",
+    "date-fns": "^4.1.0",
     "dompurify": "^3.2.6",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.511.0",
