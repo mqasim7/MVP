@@ -216,7 +216,6 @@ const FeedContainer: React.FC = () => {
             filteredItems.map((item, idx) => (
               <div
                 key={item.id}
-                ref={el => itemRefs.current[idx] = el}
                 className="h-full flex items-center justify-center snap-start"
                 data-index={idx}
               >
