@@ -6,10 +6,11 @@ import {
   ArrowUp, ArrowDown, MoreVertical, FileText,
   Image, Video, File, AlertCircle, CheckCircle, Clock
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { contentApi, personaApi } from '@/lib/api';
 import { Persona } from '@/types/dashboard';
-
+import type { FC } from 'react';
 interface ContentItem {
   id: number;
   title: string;
@@ -31,6 +32,8 @@ interface ContentItem {
   platforms: { id: number; name: string; }[];
   personas: { id: number; name: string; }[];
 }
+
+type ContentStatus = 'published' | 'draft' | 'scheduled' | 'review';
 
 export default function ContentManagement() {
   const [contentItems, setContentItems] = useState<ContentItem[]>([]);
@@ -122,17 +125,27 @@ export default function ContentManagement() {
       default: return <File size={16} />;
     }
   };
+ 
+  const statusConfig: Record<ContentStatus, { class: string; icon: LucideIcon }> = {
+    published: { class: 'badge-success', icon: CheckCircle },
+    draft: { class: 'badge-warning', icon: Edit },
+    scheduled: { class: 'badge-info', icon: Clock },
+    review: { class: 'badge-ghost', icon: Eye },
+  };  
 
   const getStatusBadge = (status: string) => {
-    const config = {
-      published: { class: 'badge-success', icon: CheckCircle },
-      draft: { class: 'badge-warning', icon: Edit },
-      scheduled: { class: 'badge-info', icon: Clock },
-      review: { class: 'badge-ghost', icon: Eye }
-    }[status as keyof any] || { class: 'badge-neutral', icon: File };
-
+    const config = statusConfig[status as ContentStatus] || {
+      class: 'badge-neutral',
+      icon: File,
+    };
+  
     const Icon = config.icon;
-    return <span className={`badge ${config.class} gap-1`}><Icon size={12} />{status}</span>;
+    return (
+      <span className={`badge ${config.class} gap-1`}>
+        <Icon size={12} />
+        {status}
+      </span>
+    );
   };
 
   const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
