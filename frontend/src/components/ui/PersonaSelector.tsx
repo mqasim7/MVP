@@ -72,7 +72,7 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, clas
         
         {/* Dropdown menu */}
         {isOpen && (
-            <div className="absolute top-full left-0 z-50 w-full mt-1 bg-black text-white border border-white/20 rounded shadow-lg max-h-60 overflow-y-auto">
+            <div className="absolute top-full left-0 z-40 w-full mt-1 bg-black text-white border border-white/20 rounded shadow-lg max-h-60 overflow-y-auto">
             <ul className="py-1">
               {personas.map((persona) => (
                 <li key={persona.id}>

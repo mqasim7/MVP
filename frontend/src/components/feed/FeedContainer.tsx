@@ -196,14 +196,14 @@ const FeedContainer: React.FC = () => {
   return (
     <div className="h-screen flex flex-col bg-white text-black">
       {(isHeaderVisible && !isManuallyHidden) && (
-        <div className="sticky top-0 z-50 flex-shrink-0 p-4 bg-white/95 backdrop-blur-sm transition-all duration-300 ease-in-out" >
+        <div className="sticky top-0 -z-0 flex-shrink-0 p-4 bg-white/95 backdrop-blur-sm transition-all duration-300 ease-in-out" >
           <div className="max-w-6xl mx-auto">
             <PersonaSelector value={selectedPersona} onChange={setSelectedPersona} />
             <PlatformFilter platforms={platformFilters} onChange={(plat) => setPlatformFilters(prev => ({ ...prev, [plat]: !prev[plat] }))} />
           </div>
         </div>
       )}
-      <button onClick={() => setIsManuallyHidden(h => !h)} className="fixed top-20 right-4 bg-black/70 backdrop-blur-sm text-white p-3 rounded-full hover:bg-black/90 transition-colors shadow-xl border border-white/20 z-50" aria-label="Toggle Controls">
+      <button onClick={() => setIsManuallyHidden(h => !h)} className="fixed top-20 right-4 bg-black/70 backdrop-blur-sm text-white p-3 rounded-full hover:bg-black/90 transition-colors shadow-xl border border-white/20 z-10" aria-label="Toggle Controls">
         { isManuallyHidden ? <ChevronDown size={24}/> : <ChevronUp size={24}/> }
       </button>
       <div className="flex-1 relative overflow-hidden">

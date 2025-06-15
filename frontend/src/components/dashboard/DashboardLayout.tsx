@@ -42,8 +42,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         id="main-drawer" 
         type="checkbox" 
         className="drawer-toggle" 
-        checked={sidebarOpen} 
-        onChange={() => setSidebarOpen(!sidebarOpen)} 
+        // checked={sidebarOpen} 
+        // onChange={() => setSidebarOpen(!sidebarOpen)} 
+        defaultChecked={false}
       />
       
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -65,7 +66,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   <span>{ user!.name ? getInitials(user!.name) : 'U' }</span>
                 </div>
               </label>
-              <ul tabIndex={0} className="mt-3 z-[1] p-2 text-black shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+              <ul tabIndex={0} className="mt-3 z-50 p-2 text-black shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
                 <li><a onClick={() => logout()}>Logout</a></li>
               </ul>
             </div>

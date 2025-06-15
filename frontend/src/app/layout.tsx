@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from '@/context/AuthContext';
 import ToastProvider from '@/components/ui/ToastProvider';
+import Head from 'next/head';
 
 export const metadata: Metadata = {
   title: "MVP Next App",
@@ -15,9 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="corporate">
-      <body
-        className={`antialiased`} suppressHydrationWarning
-      >
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+      </head>
+      <body className="antialiased" suppressHydrationWarning>
         <AuthProvider>
           {children}
           <ToastProvider />

@@ -17,7 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const user = getStoredUser();
   
   return (
-    <div className="drawer-side">
+    <div className="drawer-side z-[9999]">
       <label htmlFor="main-drawer" className="drawer-overlay" onClick={onClose}></label>
       <div className="menu p-4 w-80 h-full bg-grey bg-base-200 text-base-content">
         {/* Header */}
