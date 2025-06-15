@@ -14,7 +14,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       if (user?.role === 'admin') {
-        router.push('/admin');
+        router.push('/admin/companies');
       } else {
         router.push('/dashboard/feed');
       }

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, User, Save, Mail, Lock, UserPlus, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { userApi, companyApi } from '@/lib/api';
-
+import { useSearchParams } from 'next/navigation';
 interface FormData {
   name: string;
   email: string;
@@ -27,6 +27,7 @@ interface Company {
 export default function NewUserPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [generatePasswordText, setGeneratePasswordText] = useState(false);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
   const [fetchError, setFetchError] = useState('');
@@ -37,10 +38,16 @@ export default function NewUserPage() {
     company_id: ''
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const searchParams = useSearchParams();
+  const companyId = searchParams.get('companyId');  
 
   // Hardcoded values as requested
   const HARDCODED_ROLE = 'viewer';
   const HARDCODED_STATUS = 'active';
+
+  useEffect(() => {
+   if (companyId) setFormData(prev => ({ ...prev, "company_id": companyId }));
+  }, [companyId]);
 
   // Load companies on component mount
   useEffect(() => {
@@ -133,8 +140,13 @@ export default function NewUserPage() {
       // Show success message
       alert(`User "${formData.name}" created successfully!`);
       
-      // Redirect to user management page
-      router.push('/admin/users');
+      if(companyId) {
+        // Redirect to company page
+        router.push(`/admin/companies/${companyId}`)
+      } else {
+        // Redirect to user management page
+        router.push('/admin/users');
+      }
     } catch (error: any) {
       console.error('Error creating user:', error);
       
@@ -164,16 +176,17 @@ export default function NewUserPage() {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     handleInputChange('password', password);
+    setGeneratePasswordText(true);
   };
 
   return (
     <div className="container mx-auto max-w-4xl">
       {/* Header */}
       <div className="flex items-center mb-8">
-        <Link href="/admin/users" className="btn btn-ghost btn-sm mr-4">
+       {companyId ? null : <Link href="/admin/users" className="btn btn-ghost btn-sm mr-4">
           <ArrowLeft size={16} />
           Back to Users
-        </Link>
+        </Link>}
         <div className="flex items-center">
           <div className="bg-primary text-primary-content p-3 rounded-full mr-4">
             <UserPlus size={24} />
@@ -234,6 +247,7 @@ export default function NewUserPage() {
             </div>
 
             {/* Company Selection */}
+            {companyId ? null :
             <div className="form-control w-full mb-6">
               <label className="label">
                 <span className="label-text font-medium">Company *</span>
@@ -274,6 +288,7 @@ export default function NewUserPage() {
                 </label>
               )}
             </div>
+            }
 
             {/* Password */}
             <div className="form-control w-full mb-6">
@@ -295,7 +310,7 @@ export default function NewUserPage() {
                   onClick={generatePassword}
                   disabled={isLoading}
                 >
-                  Generate
+                  {generatePasswordText ? "Regenerate" : "Generate"}
                 </button>
               </div>
               {errors.password && (
@@ -347,7 +362,7 @@ export default function NewUserPage() {
             {/* Actions */}
             <div className="card-actions justify-end pt-6 border-t border-base-300">
               <Link 
-                href="/admin/users" 
+                href={companyId ? `/admin/companies/${companyId}` :`/admin/users`} 
                 className="btn btn-ghost" 
                 onClick={(e) => isLoading && e.preventDefault()}
               >

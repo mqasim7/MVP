@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { 
   FileText, Edit, ArrowLeft, Eye, ExternalLink, 
   BarChart2, Users, Calendar, CheckCircle, Clock,
@@ -40,6 +40,8 @@ export default function ViewContentPage() {
   const params = useParams();
   const router = useRouter();
   const contentId = parseInt(params.id as string);
+  const searchParams = useSearchParams();
+  const companyId = searchParams.get('companyId');  
 
   const [content, setContent] = useState<ContentItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -172,9 +174,9 @@ export default function ViewContentPage() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
         <div className="flex items-center">
-          <Link href="/admin/content" className="btn btn-ghost btn-sm mr-4">
+          <Link href={companyId ? `/admin/companies/${companyId}` :"/admin/content"} className="btn btn-ghost btn-sm mr-4">
             <ArrowLeft size={16} />
-            Back to Content
+            {companyId ? "Back to Company" :"Back to Content"}
           </Link>
           <div className="flex items-center">
             <div className="bg-primary text-primary-content p-3 rounded-full mr-4">
@@ -192,7 +194,8 @@ export default function ViewContentPage() {
           </div>
         </div>
         <div className="flex gap-2 mt-4 lg:mt-0">
-          <Link href={`/admin/content/${content.id}/edit`} className="btn btn-primary">
+          <Link href={companyId ? `/admin/content/${content.id}/edit?companyId=${companyId}`  
+          :`/admin/content/${content.id}/edit`} className="btn btn-primary">
             <Edit size={16} />
             Edit Content
           </Link>

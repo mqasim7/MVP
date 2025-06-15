@@ -50,7 +50,7 @@ export default function NewPersonaPage() {
     description: '',
     age_range: '',
     platforms: [],
-    interests: [],
+    interests: ["Fitness"],
     company_id: '',
     active: true
   });
@@ -230,7 +230,6 @@ export default function NewPersonaPage() {
   const handleClearAll = (field: 'platforms' | 'interests') => {
     setFormData(prev => ({ ...prev, [field]: [] }));
   };
-
   return (
     <div className="container mx-auto max-w-4xl">
       {/* Header */}
@@ -438,7 +437,7 @@ export default function NewPersonaPage() {
               </div>
 
               {/* Interests Section */}
-              <div className="mb-8">
+              {/* <div className="mb-8">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold">Key Interests *</h3>
                   <div className="flex gap-2">
@@ -485,7 +484,7 @@ export default function NewPersonaPage() {
                     Selected: {formData.interests.length} interest{formData.interests.length !== 1 ? 's' : ''}
                   </span>
                 </div>
-              </div>
+              </div> */}
 
               {/* Preview Section */}
               <div className="bg-base-200 rounded-lg p-4 mb-6">
@@ -535,7 +534,7 @@ export default function NewPersonaPage() {
                       )}
                     </div>
                   </div>
-                  <div>
+                  {/* <div>
                     <span className="font-medium">Interests ({formData.interests.length}):</span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {formData.interests.slice(0, 3).map((interest, index) => (
@@ -549,7 +548,7 @@ export default function NewPersonaPage() {
                         </span>
                       )}
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
 

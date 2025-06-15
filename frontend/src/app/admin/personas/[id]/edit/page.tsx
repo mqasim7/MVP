@@ -63,6 +63,7 @@ export default function EditPersonaPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeactivating, setIsDeactivating] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
@@ -70,7 +71,7 @@ export default function EditPersonaPage() {
     description: '',
     age_range: '',
     platforms: [],
-    interests: [],
+    interests: ["Fitness"],
     company_id: '',
     active: true
   });
@@ -155,9 +156,9 @@ export default function EditPersonaPage() {
     }
 
     // Interests validation
-    if (formData.interests.length === 0) {
-      newErrors.interests = 'Please select at least one interest';
-    }
+    // if (formData.interests.length === 0) {
+    //   newErrors.interests = 'Please select at least one interest';
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -220,7 +221,7 @@ export default function EditPersonaPage() {
         description: formData.description.trim(),
         age_range: formData.age_range.trim(),
         platforms: formData.platforms,
-        interests: formData.interests,
+        // interests: formData.interests,
         company_id: formData.company_id ? parseInt(formData.company_id) : undefined,
         active: formData.active
       });
@@ -263,6 +264,27 @@ export default function EditPersonaPage() {
       alert(error.response?.data?.message || 'Failed to delete persona. Please try again.');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleStatusToggle = async (personaId: number, currentStatus: boolean) => {
+    if (!persona) return;
+    
+    if (!confirm(`Are you sure you want to deactivate "${persona.name}"?.`)) {
+      return;
+    }
+
+    setIsDeactivating(true);
+    try {
+      await personaApi.update(personaId, { active: !currentStatus });
+      alert(`Persona ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
+      router.push('/admin/personas');
+    } catch (error: any) {
+      console.error('Error updating persona status:', error);
+      alert(error.response?.data?.message || 'Failed to update persona status. Please try again.');
+
+    } finally {
+      setIsDeactivating(false);
     }
   };
 
@@ -346,11 +368,21 @@ export default function EditPersonaPage() {
           </div>
         </div>
 
+        {/* Deactivate Button */}
+        <button
+          onClick={() => handleStatusToggle(persona.id, persona.active)}
+          className="btn btn-error btn-outline"
+          disabled={isDeleting || isSaving || isDeactivating}
+        >
+          {isDeactivating && <span className="loading loading-spinner loading-sm mr-2"></span>}
+          {persona.active ? 'Deactivate Persona' : 'Activate Persona'}
+        </button>
+
         {/* Delete Button */}
         <button
           onClick={handleDelete}
           className="btn btn-error btn-outline"
-          disabled={isDeleting || isSaving}
+          disabled={isDeleting || isSaving || isDeactivating}
         >
           {isDeleting && <span className="loading loading-spinner loading-sm mr-2"></span>}
           <Trash2 size={16} className="mr-2" />
@@ -571,7 +603,7 @@ export default function EditPersonaPage() {
             </div>
 
             {/* Interests Section */}
-            <div className="mb-8">
+            {/* <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-lg font-semibold">Key Interests *</h4>
                 <div className="flex gap-2">
@@ -618,7 +650,7 @@ export default function EditPersonaPage() {
                   Selected: {formData.interests.length} interest{formData.interests.length !== 1 ? 's' : ''}
                 </span>
               </div>
-            </div>
+            </div> */}
 
             {/* Preview Section */}
             <div className="bg-base-200 rounded-lg p-4 mb-6">
@@ -668,7 +700,7 @@ export default function EditPersonaPage() {
                     )}
                   </div>
                 </div>
-                <div>
+                {/* <div>
                   <span className="font-medium">Interests ({formData.interests.length}):</span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {formData.interests.slice(0, 3).map((interest, index) => (
@@ -682,7 +714,7 @@ export default function EditPersonaPage() {
                       </span>
                     )}
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
 

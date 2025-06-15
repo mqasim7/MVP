@@ -31,7 +31,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="bg-primary text-primary-content p-2 rounded mr-2">
               <Shield size={20} />
             </div>
-            <span className="font-semibold text-xl">Admin Dashboard</span>
+            <Link 
+                href="/admin" 
+                className={pathname === '/admin' ? 'active' : ''}
+              >
+              <span className="font-semibold text-xl">Admin Dashboard</span>
+              </Link>
           </div>
           
           {/* Admin Menu */}
@@ -46,6 +51,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 Dashboard
               </Link>
             </li> */}
+            <li>
+              <Link 
+                href="/dashboard/feed" 
+                className={pathname === '/dashboard/feed' ? 'active' : ''}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Users size={18} />
+                Content Feed
+              </Link>
+            </li>
             <li>
               <Link 
                 href="/admin/companies" 

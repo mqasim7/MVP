@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Building2, Save } from 'lucide-react';
 import { contentApi, companyApi, personaApi } from '@/lib/api';
@@ -44,13 +44,19 @@ export default function ContentCreationPage() {
   const [loadingPersonas, setLoadingPersonas] = useState(true);
   const [formData, setFormData] = useState<ContentFormData>({
     title: '',
-    type: '',
+    type: 'video',
     description: '',
     persona_id: [],
     url: '',
     company_id: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const searchParams = useSearchParams();
+  const companyId = searchParams.get('companyId');  
+
+  useEffect(() => {
+    if (companyId) setFormData(prev => ({ ...prev, "company_id": companyId }));
+   }, [companyId]);
 
   // Fetch companies and personas for the dropdowns
   useEffect(() => {
@@ -186,6 +192,9 @@ export default function ContentCreationPage() {
       const response = await contentApi.create(payload);
       
       alert('Content created successfully!');
+      if(companyId)
+      router.push(`/admin/companies/${companyId}`);
+      else
       router.push('/admin/content');
     } catch (error: any) {
       console.error('Error creating content:', error);
@@ -213,10 +222,10 @@ export default function ContentCreationPage() {
     <div className="container mx-auto max-w-4xl">
       {/* Header */}
       <div className="flex items-center mb-8">
-        <Link href="/admin/content" className="btn btn-ghost btn-sm mr-4">
-          <ArrowLeft size={16} />
-          Back to Content
-        </Link>
+      <Link href={companyId ? `/admin/companies/${companyId}` :"/admin/content"} className="btn btn-ghost btn-sm mr-4">
+            <ArrowLeft size={16} />
+            {companyId ? "Back to Company" :"Back to Content"}
+      </Link>
         <div className="flex items-center">
           <div className="bg-primary text-primary-content p-3 rounded-full mr-4">
             <Building2 size={24} />
@@ -263,7 +272,7 @@ export default function ContentCreationPage() {
             </div>
 
             {/* Content Type */}
-            <div className="form-control w-full mb-4">
+            {/* <div className="form-control w-full mb-4">
               <label className="label">
                 <span className="label-text font-medium">Content Type *</span>
               </label>
@@ -282,7 +291,7 @@ export default function ContentCreationPage() {
                   <span className="label-text-alt text-error">{errors.type}</span>
                 </label>
               )}
-            </div>
+            </div> */}
 
             {/* Description */}
             <div className="form-control w-full mb-4">
@@ -306,7 +315,7 @@ export default function ContentCreationPage() {
             </div>
 
             {/* Company Selection */}
-            <div className="form-control w-full mb-4">
+            {companyId ? null : <div className="form-control w-full mb-4">
               <label className="label">
                 <span className="label-text font-medium">Company *</span>
               </label>
@@ -337,7 +346,7 @@ export default function ContentCreationPage() {
               <label className="label">
                 <span className="label-text-alt">Select a company first to filter relevant personas</span>
               </label>
-            </div>
+            </div>}
 
             {/* Target Personas (Multi-Select) */}
             <div className="form-control w-full mb-4">

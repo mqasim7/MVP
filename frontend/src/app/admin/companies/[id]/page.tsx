@@ -6,10 +6,50 @@ import { useParams, useRouter } from 'next/navigation';
 import { 
   Building2, Users, Activity, Globe, Edit, 
   ArrowLeft, Plus, MoreVertical, CheckCircle, XCircle,
-  AlertCircle, Clock, Trash2
+  AlertCircle, Clock, Trash2,
+  FileText,
+  Eye
 } from 'lucide-react';
 import Link from 'next/link';
-import { companyApi, userApi } from '@/lib/api';
+import { companyApi, contentApi, userApi } from '@/lib/api';
+interface Company {
+  id: number;
+  name: string;
+  description?: string;
+  industry?: string;
+  website?: string;
+  logo_url?: string;
+  status: 'active' | 'inactive';
+  user_count: number;
+  created_at: string;
+  stats?: {
+    total_users: number;
+    active_users: number;
+    pending_users: number;
+    total_content: number;
+  };
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  department?: string;
+  last_login?: string;
+  created_at: string;
+}
+
+interface ContentItem {
+  id: number;
+  title: string;
+  description?: string;
+  type: 'video' | 'article' | 'gallery' | 'event';
+  status: 'published' | 'draft' | 'scheduled' | 'review';
+  created_at: string;
+  author_name?: string;
+}
 
 interface Company {
   id: number;
@@ -47,6 +87,7 @@ export default function CompanyDetailPage() {
 
   const [company, setCompany] = useState<Company | null>(null);
   const [users, setUsers] = useState<User[]>([]);
+  const [contentItems, setContentItems] = useState<ContentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -59,26 +100,25 @@ export default function CompanyDetailPage() {
     try {
       setIsLoading(true);
       setError(null);
-      
-      // Load company and its users in parallel
-      const [companyResponse, usersResponse] = await Promise.all([
+
+      const [companyResponse, usersResponse, contentResponse] = await Promise.all([
         companyApi.getById(companyId),
-        companyApi.getUsers(companyId)
+        companyApi.getUsers(companyId),
+        contentApi.getAll()
       ]);
-      
+
       setCompany(companyResponse);
       setUsers(usersResponse);
+      setContentItems(contentResponse.filter((item:any) => item.company_id === companyId));
     } catch (error: any) {
       console.error('Error loading company data:', error);
-      if (error.response?.status === 404) {
-        setError('Company not found');
-      } else {
-        setError(error.response?.data?.message || 'Failed to load company data');
-      }
+      setError(error.response?.data?.message || 'Failed to load company data');
     } finally {
       setIsLoading(false);
     }
   };
+
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString();
 
   const handleDeleteCompany = async () => {
     if (!company) return;
@@ -157,6 +197,10 @@ export default function CompanyDetailPage() {
         </div>
       </div>
     );
+  }
+
+  const createUser = () => {
+    router.push(`/admin/users/new?companyId=${company.id}`);
   }
 
   return (
@@ -317,10 +361,13 @@ export default function CompanyDetailPage() {
             <div className="card-body">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="card-title">Company Users ({users.length})</h2>
-                <Link href={`/admin/users/new`} className="btn btn-primary btn-sm">
+                <button 
+                  className="btn btn-primary btn-sm"
+                  onClick={createUser}
+                >
                   <Plus size={14} />
                   Add User
-                </Link>
+                </button>
               </div>
               
               {users.length > 0 ? (
@@ -373,7 +420,7 @@ export default function CompanyDetailPage() {
                               </div>
                               <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                 <li>
-                                  <Link href={`/admin/users/${user.id}/edit`}>
+                                  <Link href={`/admin/users/${user.id}/edit?companyId=${companyId}`}>
                                     <Edit size={14} className="mr-2" /> Edit User
                                   </Link>
                                 </li>
@@ -401,6 +448,88 @@ export default function CompanyDetailPage() {
               )}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* --- Company Content Overview Section --- */}
+      <div className="card bg-base-100 shadow-xl mt-10">
+        <div className="card-body">
+          <h2 className="card-title">Company Content Overview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div>
+              <p className="text-sm opacity-70">Total Content</p>
+              <p className="text-xl font-bold">{contentItems.length}</p>
+            </div>
+            <div>
+              <p className="text-sm opacity-70">Published</p>
+              <p className="text-xl font-bold">{contentItems.filter(c => c.status === 'published').length}</p>
+            </div>
+            <div>
+              <p className="text-sm opacity-70">Drafts</p>
+              <p className="text-xl font-bold">{contentItems.filter(c => c.status === 'draft').length}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* --- Company Content List Section --- */}
+      <div className="card bg-base-100 shadow-xl mt-6">
+        <div className="card-body">
+        <div className="flex flex-col lg:flex-row justify-between mb-8">
+        <div>
+          <h2 className="card-title mb-4">Company Content List</h2>
+        </div>
+        <Link href={`/admin/content/new?companyId=${companyId}`} className="btn btn-primary mt-4 lg:mt-0">
+          <Plus size={16} /> Add New Content
+        </Link>
+      </div>
+          {contentItems.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="table table-zebra">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Author</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {contentItems.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.title}</td>
+                      <td className="capitalize">{item.type}</td>
+                      <td>
+                        <span className={`badge ${
+                          item.status === 'published' ? 'badge-success' :
+                          item.status === 'draft' ? 'badge-warning' :
+                          item.status === 'scheduled' ? 'badge-info' :
+                          'badge-ghost'
+                        }`}>
+                          {item.status}
+                        </span>
+                      </td>
+                      <td>{item.author_name || 'Unknown'}</td>
+                      <td>{formatDate(item.created_at)}</td>
+                      <td>
+                        <Link href={`/admin/content/${item.id}?companyId=${companyId}`} className="btn btn-sm btn-ghost">
+                          <Eye size={14} className="mr-1" /> View
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <FileText size={48} className="mx-auto opacity-20 mb-4" />
+              <h3 className="font-semibold mb-2">No content available</h3>
+              <p className="text-base-content/70">This company hasn't created any content yet.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

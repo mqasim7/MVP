@@ -189,9 +189,9 @@ export default function EditCompanyPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center">
-          <Link href={`/admin/companies/${companyId}`} className="btn btn-ghost btn-sm mr-4">
+        <Link href={companyId ? `/admin/companies/${companyId}` :"/admin/content"} className="btn btn-ghost btn-sm mr-4">
             <ArrowLeft size={16} />
-            Back to Company
+            {companyId ? "Back to Company" :"Back to Content"}
           </Link>
           <div className="flex items-center">
             {company.logo_url ? (

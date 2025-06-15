@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { ArrowLeft, FileText, Save, Trash2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { contentApi, companyApi, personaApi } from '@/lib/api';
@@ -86,6 +86,9 @@ export default function EditContentPage() {
     company_id: ''
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const searchParams = useSearchParams();
+  const companyId = searchParams.get('companyId');  
+
 
   // Load content and related data
   useEffect(() => {
@@ -258,7 +261,11 @@ export default function EditContentPage() {
     try {
       await contentApi.delete(contentId);
       alert('Content deleted successfully!');
-      router.push('/admin/content');
+      if(companyId) {
+        router.push(`/admin/companies/${companyId}`)
+      } else {
+        router.push('/admin/content');
+      }
     } catch (error: any) {
       console.error('Error deleting content:', error);
       alert(error.response?.data?.message || 'Failed to delete content. Please try again.');
@@ -317,7 +324,7 @@ export default function EditContentPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center">
-          <Link href={`/admin/content/${contentId}`} className="btn btn-ghost btn-sm mr-4">
+        <Link href={companyId ? `/admin/content/${contentId}?companyId=${companyId}` :"/admin/content"} className="btn btn-ghost btn-sm mr-4">
             <ArrowLeft size={16} />
             Back to Content
           </Link>

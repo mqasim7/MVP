@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { ArrowLeft, User, Save, Trash2, Mail, Building2, UserCheck, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { userApi, companyApi } from '@/lib/api';
@@ -60,6 +60,8 @@ export default function EditUserPage() {
     status: 'pending'
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const searchParams = useSearchParams();
+  const companyId = searchParams.get('companyId');  
 
   // Load user and companies data
   useEffect(() => {
@@ -188,7 +190,13 @@ export default function EditUserPage() {
     try {
       await userApi.delete(userId);
       alert('User deleted successfully!');
-      router.push('/admin/users');
+      if(companyId) {
+        // Redirect to company page
+        router.push(`/admin/companies/${companyId}`)
+      } else {
+        // Redirect to user management page
+        router.push('/admin/users');
+      }
     } catch (error: any) {
       console.error('Error deleting user:', error);
       alert(error.response?.data?.message || 'Failed to delete user. Please try again.');
@@ -268,10 +276,10 @@ export default function EditUserPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center">
-          <Link href="/admin/users" className="btn btn-ghost btn-sm mr-4">
+        {companyId ? null: <Link href="/admin/users" className="btn btn-ghost btn-sm mr-4">
             <ArrowLeft size={16} />
             Back to Users
-          </Link>
+          </Link>}
           <div className="flex items-center">
             <div className="avatar placeholder mr-4">
               <div className="bg-primary text-primary-content rounded-full w-12">
@@ -494,7 +502,7 @@ export default function EditUserPage() {
             {/* Actions */}
             <div className="card-actions justify-end pt-6 border-t border-base-300 mt-6">
               <Link 
-                href="/admin/users" 
+                href={companyId ? `/admin/companies/${companyId}` : "/admin/users"} 
                 className="btn btn-ghost" 
                 onClick={(e) => isSaving && e.preventDefault()}
               >
