@@ -58,6 +58,9 @@ html,
 body {
   background-color: var(--color-background);
   color: var(--color-text);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Card styling */
