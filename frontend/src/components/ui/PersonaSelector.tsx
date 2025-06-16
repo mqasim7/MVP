@@ -66,13 +66,13 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, clas
           onClick={() => setIsOpen(!isOpen)}
           className="w-full flex justify-between items-center px-4 py-3 bg-black text-white border border-white/20 rounded focus:outline-none"
         >
-          <span>{selected.name}</span>
+         <span>{selected?.name || 'Select...'}</span>
           <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
         
         {/* Dropdown menu */}
         {isOpen && (
-            <div className="absolute top-full left-0 z-40 w-full mt-1 bg-black text-white border border-white/20 rounded shadow-lg max-h-60 overflow-y-auto">
+            <div className="absolute top-1 left-0 z-40 w-full mt-1 bg-black text-white border border-white/20 rounded shadow-lg max-h-[300px] overflow-y-auto">
             <ul className="py-1">
               {personas.map((persona) => (
                 <li key={persona.id}>

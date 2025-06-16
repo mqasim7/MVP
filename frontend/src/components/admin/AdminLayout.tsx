@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Settings, Users, FileText, Grid, BarChart2, Shield, Plus, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -19,8 +19,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         type="checkbox" 
         className="drawer-toggle" 
         defaultChecked={false}
-        // checked={sidebarOpen} 
-        // onChange={() => setSidebarOpen(!sidebarOpen)} 
+        checked={sidebarOpen} 
+        onChange={() => setSidebarOpen(!sidebarOpen)} 
       />
       
       {/* Sidebar */}
@@ -28,17 +28,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <label htmlFor="admin-drawer" className="drawer-overlay" onClick={() => setSidebarOpen(false)}></label>
         <div className="menu p-4 w-80 h-full bg-grey bg-base-200 text-base-content">
           {/* Admin Header */}
-          <div className="flex items-center mb-6 pb-4 border-b border-base-300">
-            <div className="bg-primary text-primary-content p-2 rounded mr-2">
-              <Shield size={20} />
-            </div>
-            <Link 
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-base-300">
+            <div className="flex items-center">
+              <div className="bg-primary text-primary-content p-2 rounded mr-2">
+                <Shield size={20} />
+              </div>
+              <Link 
                 href="/admin" 
                 className={pathname === '/admin' ? 'active' : ''}
               >
-              <span className="font-semibold text-xl">Admin Dashboard</span>
+                <span className="font-semibold text-xl">Admin Dashboard</span>
               </Link>
+            </div>
+            <button 
+              className="btn btn-sm btn-circle btn-ghost lg:hidden" 
+              onClick={() => setSidebarOpen(false)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
+
           
           {/* Admin Menu */}
           <ul className="menu menu-md rounded-box">

@@ -21,11 +21,25 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       <label htmlFor="main-drawer" className="drawer-overlay" onClick={onClose}></label>
       <div className="menu p-4 w-80 h-full bg-grey bg-base-200 text-base-content">
         {/* Header */}
-        <div className="flex items-center mb-6 pb-4 border-b border-base-300">
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-base-300">
           <div className="bg-primary text-primary-content p-2 rounded mr-2">
             <span className="font-bold text-black">BI</span>
           </div>
           <span className="font-semibold text-xl"></span>
+          <button
+                className="btn btn-sm btn-circle btn-ghost ml-2 lg:hidden"
+                onClick={onClose}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
         </div>
         
         {/* Menu Items */}
