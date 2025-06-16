@@ -26,6 +26,7 @@ const FeedContainer: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [noContentError, setNoContentError] = useState<boolean>(false);
   const user = getStoredUser();
 
   // Header visibility states
@@ -59,6 +60,7 @@ const FeedContainer: React.FC = () => {
   const loadData = async () => {
     setIsLoading(true);
     setError(null);
+    setNoContentError(false)
 
     try {
       const resp = await contentApi.getByPersonaAndCompany(
@@ -85,8 +87,17 @@ const FeedContainer: React.FC = () => {
       setFeedItems(normalized);
       setFilteredItems(normalized);
       setCurrentIndex(0);
-    } catch (e: any) {
-      setError(e.response?.data?.message ?? "Failed to load feed");
+      setNoContentError(false);
+    } catch (e: any) { 
+      const message = e.response?.data?.message;
+      if (message === 'No content found for that persona & company') {
+        setFeedItems([]);
+        setFilteredItems([]);
+        setNoContentError(true);
+      } else {
+        setNoContentError(false);
+        setError(message ?? "Failed to load feed");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -239,7 +250,9 @@ const FeedContainer: React.FC = () => {
               <div className="text-center">
                 <h2 className="text-xl font-bold mb-2">No content found</h2>
                 <p className="text-gray-600 mb-4">No content matches your current filter selection.</p>
-                <button className="btn bg-black text-white hover:bg-gray-800" onClick={() => setPlatformFilters({ mojo: true, instagram: true, tiktok: true })}>Reset Filters</button>
+                {!noContentError && 
+                  <button className="btn bg-black text-white hover:bg-gray-800" onClick={() => setPlatformFilters({ mojo: true, instagram: true, tiktok: true })}>Reset Filters</button>
+                }
               </div>
             </div>
           )}

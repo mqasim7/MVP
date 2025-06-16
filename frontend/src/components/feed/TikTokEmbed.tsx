@@ -408,10 +408,10 @@ const TikTokEmbed: React.FC<TikTokEmbedProps> = ({
           <div className="flex flex-col items-center">
             <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mb-3"></div>
             <p className="text-white text-sm font-medium">Loading TikTok video...</p>
-            <p className="text-white/60 text-xs mt-1">Method: {embedMethod}</p>
+            {/* <p className="text-white/60 text-xs mt-1">Method: {embedMethod}</p>
             {debugInfo && (
               <p className="text-white/40 text-xs mt-1 max-w-md text-center">{debugInfo}</p>
-            )}
+            )} */}
           </div>
         </div>
       )}
