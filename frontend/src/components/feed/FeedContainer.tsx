@@ -219,8 +219,8 @@ const FeedContainer: React.FC = () => {
                 className="h-full flex items-center justify-center snap-start"
                 data-index={idx}
               >
-                <div className="w-full max-w-[360px] aspect-[9/16] bg-black rounded-lg overflow-hidden shadow-lg flex items-center justify-center">
-                  <SimplifiedVideoPlayer
+                <div className="w-full max-w-[360px] aspect-[9/16] mx-auto bg-black rounded-lg overflow-hidden shadow-lg flex items-center justify-center">
+                   <SimplifiedVideoPlayer
                     src={item.videoUrl}
                     poster={item.poster}
                     title={item.title}

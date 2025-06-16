@@ -19,7 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   return (
     <div className="drawer-side z-[9999]">
       <label htmlFor="main-drawer" className="drawer-overlay" onClick={onClose}></label>
-      <div className="menu p-4 w-80 h-full bg-grey bg-base-200 text-base-content">
+      <div className="menu p-4 w-80 max-w-[320px] h-full bg-grey bg-base-200 text-base-content">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-base-300">
           <div className="bg-primary text-primary-content p-2 rounded mr-2">
@@ -46,6 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <ul className="menu menu-md">
           {/* <li>
             <Link 
+              onClick={onClose}
               href="/dashboard" 
               className={pathname === '/dashboard' ? 'active' : ''}
             >
@@ -55,6 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </li> */}
           <li>
             <Link 
+              onClick={onClose}
               href="/dashboard/feed" 
               className={pathname === '/dashboard/feed' ? 'active' : ''}
             >
@@ -64,6 +66,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </li>
           <li>
             <Link 
+              onClick={onClose}
               href="/dashboard/insights" 
               className={pathname === '/dashboard/insights' ? 'active' : ''}
             >
@@ -81,6 +84,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <ul className="menu menu-md">
               <li>
                 <Link 
+                  onClick={onClose}
                   href="/admin/users" 
                   className={pathname === '/admin/users' ? 'active' : ''}
                 >
@@ -90,6 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </li>
               <li>
                 <Link 
+                  onClick={onClose}
                   href="/admin/content" 
                   className={pathname === '/admin/content' ? 'active' : ''}
                 >
