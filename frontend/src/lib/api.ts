@@ -2,7 +2,7 @@
 import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
 // API base URL - change this to match your backend URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://mvp-production-450a.up.railway.app/api';
 
 // Create axios instance
 const api = axios.create({
@@ -165,7 +165,11 @@ export const contentApi = {
   
   updateMetrics: async (id: number, metrics: any) => {
     return (await api.post(`/content/${id}/metrics`, metrics)).data;
-  }
+  },
+  
+  bulkCreate: async (contents: any[]) => {
+    return (await api.post("/content/bulk", { contents })).data;
+  },  
 };
 
 // Persona management endpoints
