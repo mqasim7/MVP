@@ -63,6 +63,34 @@ exports.createContent = async (req, res) => {
   }
 };
 
+//bulk creation
+exports.bulkCreateContent = async (req, res) => {
+  try {
+    // 1. validate
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    // 2. attach author_id to each item
+    const items = req.body.contents.map(item => ({
+      ...item,
+      company_id: item.company_id,
+    }));
+
+    // 3. perform bulk insert (returns array of new IDs)
+    const newIds = await Content.bulkCreate(items);
+
+    res.status(201).send({
+      message: 'Bulk content created successfully!',
+    });
+  } catch (error) {
+    logger.error(`Bulk Create Content Error: ${error.message}`);
+    res.status(500).send({ message: 'Error bulk creating content' });
+  }
+};
+
+
 exports.updateContent = async (req, res) => {
   try {
     // Check validation results

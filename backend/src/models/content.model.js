@@ -295,7 +295,63 @@ const Content = {
         const platformNames = platforms.map(r => r.name);
         return { ...item, platformNames, personas };
       }));
-    },  
+    },
+    
+    /**
+ * Insert multiple content records in a loop.
+ * Returns an array of newly created content IDs.
+ */
+bulkCreate: async (contents) => {
+  const createdIds = [];
+
+  // Optionally wrap in transaction if your db layer supports it
+  for (const content of contents) {
+    // 1) insert main content row
+    const sql = `
+      INSERT INTO content 
+        (title, description, type, content_url, company_id, publish_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const params = [
+      content.title,
+      content.description || null,
+      content.type,
+      content.content_url || null,
+      content.company_id,
+      content.publish_date || null,
+    ];
+    const result = await db.query(sql, params);
+    const contentId = result.insertId;
+    createdIds.push(contentId);
+
+    // 2) insert personas if any
+    if (Array.isArray(content.personas) && content.personas.length) {
+      await Promise.all(
+        content.personas.map(pid =>
+          db.query(
+            'INSERT INTO content_personas (content_id, persona_id) VALUES (?, ?)',
+            [contentId, pid]
+          )
+        )
+      );
+    }
+
+    // 3) insert platforms if any
+    if (Array.isArray(content.platforms) && content.platforms.length) {
+      await Promise.all(
+        content.platforms.map(plid =>
+          db.query(
+            'INSERT INTO content_platforms (content_id, platform_id) VALUES (?, ?)',
+            [contentId, plid]
+          )
+        )
+      );
+    }
+  }
+
+  return createdIds;
+},
+
 
 };
 
