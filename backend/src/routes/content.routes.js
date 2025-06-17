@@ -37,10 +37,10 @@ router.post(
 
 // Bulk creation
 router.post(
-  '/bulk',
+  "/bulk",
   [
-    body('title').trim().isLength({ min: 3 }).withMessage('Title must be at least 3 characters'),
-    body('description').optional().isString().withMessage('Description must be a string'),
+    body("contents.*.title").trim().isLength({ min: 3 }).withMessage("Title must be at least 3 characters"),
+    body("contents.*.description") .optional().isString() .withMessage("Description must be a string"),
   ],
   contentController.bulkCreateContent
 );
