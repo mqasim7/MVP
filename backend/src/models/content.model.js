@@ -301,56 +301,69 @@ const Content = {
  * Insert multiple content records in a loop.
  * Returns an array of newly created content IDs.
  */
-bulkCreate: async (contents) => {
-  const createdIds = [];
-
-  // Optionally wrap in transaction if your db layer supports it
-  for (const content of contents) {
-    // 1) insert main content row
-    const sql = `
-      INSERT INTO content 
-        (title, description, type, content_url, company_id, publish_date)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-    const params = [
-      content.title,
-      content.description || null,
-      content.type,
-      content.content_url || null,
-      content.company_id,
-      content.publish_date || null,
-    ];
-    const result = await db.query(sql, params);
-    const contentId = result.insertId;
-    createdIds.push(contentId);
-
-    // 2) insert personas if any
-    if (Array.isArray(content.personas) && content.personas.length) {
-      await Promise.all(
-        content.personas.map(pid =>
-          db.query(
-            'INSERT INTO content_personas (content_id, persona_id) VALUES (?, ?)',
-            [contentId, pid]
-          )
-        )
-      );
+    bulkCreate: async (contents) => {
+      const createdIds = [];
+    
+      for (const content of contents) {
+        // Safely parse publish_date and scheduled_date to MySQL DATETIME format (YYYY-MM-DD)
+        const publishDate = content.publish_date 
+          ? new Date(content.publish_date).toISOString().slice(0, 19).replace('T', ' ')
+          : null;
+    
+        const scheduledDate = content.scheduled_date 
+          ? new Date(content.scheduled_date).toISOString().slice(0, 19).replace('T', ' ')
+          : null;
+    
+        const sql = `
+          INSERT INTO content 
+            (title, description, type, content_url, thumbnail_url, author_id, company_id, scheduled_date, publish_date)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+    
+        const params = [
+          content.title,
+          content.description || null,
+          content.type,
+          content.content_url || null,
+          content.thumbnail_url || null,
+          content.author_id || null,
+          content.company_id || null,
+          scheduledDate,
+          publishDate
+        ];
+    
+        const result = await db.query(sql, params);
+        const contentId = result.insertId;
+        createdIds.push(contentId);
+    
+        // Insert personas if any
+        if (Array.isArray(content.personas) && content.personas.length) {
+          await Promise.all(
+            content.personas.map(pid =>
+              db.query(
+                'INSERT INTO content_personas (content_id, persona_id) VALUES (?, ?)',
+                [contentId, pid]
+              )
+            )
+          );
+        }
+    
+        // Insert platforms if any
+        if (Array.isArray(content.platforms) && content.platforms.length) {
+          await Promise.all(
+            content.platforms.map(plid =>
+              db.query(
+                'INSERT INTO content_platforms (content_id, platform_id) VALUES (?, ?)',
+                [contentId, plid]
+              )
+            )
+          );
+        }
+      }
+    
+      return createdIds;
     }
-
-    // 3) insert platforms if any
-    if (Array.isArray(content.platforms) && content.platforms.length) {
-      await Promise.all(
-        content.platforms.map(plid =>
-          db.query(
-            'INSERT INTO content_platforms (content_id, platform_id) VALUES (?, ?)',
-            [contentId, plid]
-          )
-        )
-      );
-    }
-  }
-
-  return createdIds;
-},
+    
 
 
 };
