@@ -93,6 +93,7 @@ export interface PersonaSelectorProps {
   onChange: (id: number) => void;
   personas: Persona[];
   personaLoading: boolean;
+  setIsManuallyHidden: (v:boolean) => void;
   className?: string;
 }
 

@@ -4,7 +4,7 @@ import { PersonaSelectorProps, Persona } from '@/types/dashboard';
 import { personaApi } from '@/lib/api';
 import { getStoredUser } from '@/lib/auth';
  
-const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, className = '', personas, personaLoading }) => {
+const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, className = '', personas, personaLoading, setIsManuallyHidden }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const selected = personas.find(p => p.id === value) || personas[0];
@@ -24,6 +24,7 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, clas
   }, []);
 
   const handleSelect = (id: number) => {
+    setIsManuallyHidden(true);
     onChange(id);
     setIsOpen(false);
   };

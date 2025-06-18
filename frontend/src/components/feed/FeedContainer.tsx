@@ -28,12 +28,13 @@ const FeedContainer: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [noContentError, setNoContentError] = useState<boolean>(false);
   const [personas, setPersonas] = useState<Persona[]>([]);
-  const [isManuallyHidden, setIsManuallyHidden] = useState<boolean>(false);
+  const [isManuallyHidden, setIsManuallyHidden] = useState<boolean>(true);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
   const user = getStoredUser();
 
   // Fetch personas on mount
@@ -111,7 +112,7 @@ const FeedContainer: React.FC = () => {
     setCurrentIndex(0);
   }, [platformFilters, feedItems]);
 
-  // Handle IntersectionObserver for smooth video activation
+  // IntersectionObserver to detect active video
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect();
 
@@ -140,6 +141,46 @@ const FeedContainer: React.FC = () => {
     return () => observerRef.current?.disconnect();
   }, [filteredItems]);
 
+  // Auto snap logic when scrolling stops
+  const handleScroll = useCallback(() => {
+    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+    scrollTimeout.current = setTimeout(() => {
+      if (!containerRef.current) return;
+      const container = containerRef.current;
+      const containerRect = container.getBoundingClientRect();
+
+      let minDistance = Infinity;
+      let closestIndex = currentIndex;
+
+      itemRefs.current.forEach((item, idx) => {
+        if (item) {
+          const rect = item.getBoundingClientRect();
+          const distance = Math.abs(rect.top - containerRect.top);
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestIndex = idx;
+          }
+        }
+      });
+
+      // Smoothly scroll to closest item
+      const target = itemRefs.current[closestIndex];
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  }, [currentIndex]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+    }
+    return () => {
+      if (container) container.removeEventListener('scroll', handleScroll);
+    };
+  }, [handleScroll]);
+
   if (error) {
     return (
       <div className="max-w-md mx-auto py-10">
@@ -159,19 +200,19 @@ const FeedContainer: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col bg-white text-black relative">
-      {/* Absolutely positioned header, does not occupy scroll space */}
       {!isManuallyHidden && (
-        <div className="absolute top-0 left-0 w-full z-10 p-4 bg-white/95 backdrop-blur-md shadow">
+        <div className="absolute top-0 left-0 w-full z-10 bg-white/95 backdrop-blur-md shadow">
           <div className="max-w-6xl mx-auto">
             <PersonaSelector
               value={selectedPersona}
               onChange={setSelectedPersona}
               personas={personas}
               personaLoading={personaLoading}
+              setIsManuallyHidden={setIsManuallyHidden}
             />
             <PlatformFilter
               platforms={platformFilters}
-              onChange={(plat) => setPlatformFilters(prev => ({ ...prev, [plat]: !prev[plat] }))}
+              onChange={(plat) => {setIsManuallyHidden(true);setPlatformFilters(prev => ({ ...prev, [plat]: !prev[plat] }))}}
             />
           </div>
         </div>
@@ -200,7 +241,7 @@ const FeedContainer: React.FC = () => {
                 <div
                   key={item.id}
                   className="h-screen flex items-center justify-center snap-start"
-                  ref={el => {itemRefs.current[idx] = el}}
+                  ref={el => { itemRefs.current[idx] = el; }}
                 >
                   <div className="w-full max-w-[360px] aspect-[9/16] mx-auto bg-black rounded-lg overflow-hidden shadow-lg">
                     <SimplifiedVideoPlayer
