@@ -91,6 +91,8 @@ export interface ScheduledContent {
 export interface PersonaSelectorProps {
   value: number;
   onChange: (id: number) => void;
+  personas: Persona[];
+  personaLoading: boolean;
   className?: string;
 }
 

@@ -44,7 +44,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         className="drawer-toggle" 
         checked={sidebarOpen} 
         onChange={() => setSidebarOpen(!sidebarOpen)} 
-        defaultChecked={false}
       />
       
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />

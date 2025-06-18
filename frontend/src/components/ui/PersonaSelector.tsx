@@ -3,37 +3,11 @@ import { ChevronDown } from 'lucide-react';
 import { PersonaSelectorProps, Persona } from '@/types/dashboard';
 import { personaApi } from '@/lib/api';
 import { getStoredUser } from '@/lib/auth';
-
-const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, className = '' }) => {
+ 
+const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, className = '', personas, personaLoading }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [personas, setPersonas] = useState<Persona[]>([]);
   const selected = personas.find(p => p.id === value) || personas[0];
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const user = getStoredUser();
-
-  useEffect(() => {
-      loadData();
-    }, []);
-  
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        // Load personas
-        const personasResponse = await personaApi.getByCompanyId(user!.company_id!);
-        
-        setPersonas(personasResponse);
-      } catch (error: any) {
-        console.error('Error loading data:', error);
-        setError(error.response?.data?.message || 'Failed to load personas');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -59,7 +33,7 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, clas
       <div className="text-sm uppercase font-medium mb-2">
         Select Persona
       </div>
-      {!isLoading && (
+      {personaLoading ? "Loading..." : (
         <div ref={dropdownRef} className="relative w-full">
         {/* Dropdown trigger */}
         <button 
@@ -90,10 +64,6 @@ const PersonaSelector: React.FC<PersonaSelectorProps> = ({ value, onChange, clas
         )}
       </div>
       )}
-      
-      <div className="text-xs text-center mt-2 text-black/70">
-        An insider peek at what your ICP is watching
-      </div>
     </div>
   );
 };

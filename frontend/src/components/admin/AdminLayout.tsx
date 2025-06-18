@@ -18,7 +18,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         id="admin-drawer" 
         type="checkbox" 
         className="drawer-toggle" 
-        defaultChecked={false}
         checked={sidebarOpen} 
         onChange={() => setSidebarOpen(!sidebarOpen)} 
       />

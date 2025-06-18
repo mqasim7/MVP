@@ -22,7 +22,7 @@ const SimplifiedVideoPlayer: React.FC<VideoPlayerProps & { isActive: boolean }> 
   isActive = false
 }) => {
   const [playing, setPlaying] = useState<boolean>(false);
-  const [muted, setMuted] = useState<boolean>(true);
+  const [muted, setMuted] = useState<boolean>(false);
   const [embedType, setEmbedType] = useState<'none' | 'instagram' | 'tiktok'>('none');
   const [videoError, setVideoError] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -47,12 +47,17 @@ const SimplifiedVideoPlayer: React.FC<VideoPlayerProps & { isActive: boolean }> 
   // Handle autoplay when video becomes active
   useEffect(() => {
     if (videoRef.current && embedType === 'none' && src) {
+      const video = videoRef.current;
+  
       if (isActive && autoplay) {
-        videoRef.current.play().catch(() => {
-          setPlaying(false);
-        });
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => setPlaying(true))
+            .catch(() => setPlaying(false));
+        }
       } else {
-        videoRef.current.pause();
+        video.pause();
         setPlaying(false);
       }
     }
