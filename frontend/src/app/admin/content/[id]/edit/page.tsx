@@ -41,6 +41,7 @@ interface FormData {
   persona_ids: string[];
   scheduled_date: string;
   company_id: string;
+  platforms:string;
 }
 
 interface FormErrors {
@@ -83,7 +84,8 @@ export default function EditContentPage() {
     thumbnail_url: '',
     persona_ids: [],
     scheduled_date: '',
-    company_id: ''
+    company_id: '',
+    platforms: ""
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const searchParams = useSearchParams();
@@ -118,7 +120,9 @@ export default function EditContentPage() {
           thumbnail_url: contentResponse.thumbnail_url || '',
           persona_ids: contentResponse.personas ? contentResponse.personas.map((p: any) => p.id.toString()) : [],
           scheduled_date: contentResponse.scheduled_date ? contentResponse.scheduled_date.split('T')[0] : '',
-          company_id: contentResponse.company_id?.toString() || ''
+          company_id: contentResponse.company_id?.toString() || '',
+          platforms: contentResponse.platforms && contentResponse.platforms.length === 1 
+          ? contentResponse.platforms[0]?.id : '',
         });
       } catch (error: any) {
         console.error('Error loading data:', error);
@@ -180,6 +184,10 @@ export default function EditContentPage() {
       newErrors.scheduled_date = 'Scheduled date is required when status is scheduled';
     }
 
+    if (!formData.platforms) {
+      newErrors.platforms = "Platform is required.";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -226,7 +234,8 @@ export default function EditContentPage() {
         thumbnail_url: formData.thumbnail_url.trim() || undefined,
         personas: formData.persona_ids.map(id => parseInt(id)),
         scheduled_date: formData.scheduled_date || undefined,
-        company_id: formData.company_id ? parseInt(formData.company_id) : undefined
+        company_id: formData.company_id ? parseInt(formData.company_id) : undefined,
+        platforms: [Number(formData.platforms)]
       });
       
       alert('Content updated successfully!');
@@ -602,6 +611,32 @@ export default function EditContentPage() {
                 </span>
               </label>
             </div>
+
+              {/* Platform Selection */}
+              <div className="form-control w-full mb-4">
+                <label className="label">
+                  <span className="label-text font-medium">Platform *</span>
+                </label>
+                <select
+                  className={`select select-bordered w-full ${
+                    errors.platforms ? "select-error" : ""
+                  }`}
+                  value={formData.platforms}
+                  onChange={(e) => handleInputChange("platforms", e.target.value)}
+                  disabled={isLoading}
+                >
+                  <option value={""}>Select platform</option>
+                  <option value={"1"}>Instagram</option>
+                  <option value={"2"}>TikTok</option>
+                </select>
+                {errors.platforms && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">
+                      {errors.platforms}
+                    </span>
+                  </label>
+                )}
+              </div>
 
             {/* Preview Section */}
             <div className="bg-base-200 rounded-lg p-4 mb-6">

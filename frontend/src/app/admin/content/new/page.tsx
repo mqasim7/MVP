@@ -16,6 +16,7 @@ interface ContentFormData {
   persona_id: string[];
   url: string;
   company_id: string;
+  platforms: string;
 }
 
 interface FormErrors {
@@ -57,11 +58,11 @@ export default function ContentCreationPage() {
     persona_id: [],
     url: "",
     company_id: "",
+    platforms: ""
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const searchParams = useSearchParams();
   const companyId = searchParams.get("companyId");
-
   const [isBulk, setIsBulk] = useState(false);
   const [singleForm, setSingleForm] = useState({
     title: "",
@@ -317,7 +318,11 @@ export default function ContentCreationPage() {
       newErrors.persona_id = "Select at least one persona";
     }
 
-    if (formData.url && !isValidUrl(formData.url)) {
+    if (!formData.platforms) {
+      newErrors.platforms = "Platform is required.";
+    }
+
+    if (!formData.url || !isValidUrl(formData.url)) {
       newErrors.url = "Please enter a valid URL";
     }
 
@@ -338,6 +343,10 @@ export default function ContentCreationPage() {
 
     if (!formData.company_id) {
       newErrors.company_id = "Please select a company";
+    }
+
+    if (!formData.platforms) {
+      newErrors.platforms = "Platform is required.";
     }
 
     setErrors(newErrors);
@@ -378,6 +387,7 @@ export default function ContentCreationPage() {
       content_url: item.url,
       company_id: formData.company_id,
       publish_date: item.publishDate,
+      platforms: [Number(formData.platforms)]
     }));
 
     try {
@@ -430,6 +440,7 @@ export default function ContentCreationPage() {
         url: formData.url.trim(),
         company_id: formData.company_id,
         content_url: formData.url,
+        platforms: [Number(formData.platforms)]
       };
       const response = await contentApi.create(payload);
 
@@ -618,6 +629,33 @@ export default function ContentCreationPage() {
                   </label>
                 )}
               </div>
+
+              {/* Platform Selection */}
+              <div className="form-control w-full mb-4">
+                <label className="label">
+                  <span className="label-text font-medium">Platform *</span>
+                </label>
+                <select
+                  className={`select select-bordered w-full ${
+                    errors.platforms ? "select-error" : ""
+                  }`}
+                  value={formData.platforms}
+                  onChange={(e) => handleInputChange("platforms", e.target.value)}
+                  disabled={isLoading}
+                >
+                  <option value={""}>Select platform</option>
+                  <option value={"1"}>Instagram</option>
+                  <option value={"2"}>TikTok</option>
+                </select>
+                {errors.platforms && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">
+                      {errors.platforms}
+                    </span>
+                  </label>
+                )}
+              </div>
+
               {/* upload input */}
               <div>
                 <label className="label font-medium">Upload File</label>
@@ -852,6 +890,31 @@ export default function ContentCreationPage() {
                 )}
               </div>
 
+              {/* Platform Selection */}
+              <div className="form-control w-full mb-4">
+                <label className="label">
+                  <span className="label-text font-medium">Platform *</span>
+                </label>
+                <select
+                  className={`select select-bordered w-full ${
+                    errors.platforms ? "select-error" : ""
+                  }`}
+                  value={formData.platforms}
+                  onChange={(e) => handleInputChange("platforms", e.target.value)}
+                  disabled={isLoading}
+                >
+                  <option value={""}>Select platform</option>
+                  <option value={"1"}>Instagram</option>
+                  <option value={"2"}>TikTok</option>
+                </select>
+                {errors.platforms && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">
+                      {errors.platforms}
+                    </span>
+                  </label>
+                )}
+              </div>
               {/* Content URL */}
               <div className="form-control w-full mb-4">
                 <label className="label">
