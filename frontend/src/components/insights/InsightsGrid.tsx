@@ -182,9 +182,10 @@ const filteredInsights = insights.filter(insight => {
         <div className="flex gap-4 mt-4 md:mt-0">
         <div>
           <DatePicker 
-            selected={startDate} 
+            selected={startDate}  
             onChange={(date: Date|null) => setStartDate(date)} 
             selectsStart
+            popperPlacement="bottom-start"
             startDate={startDate}
             endDate={endDate}
             className="input input-bordered w-full"
@@ -197,6 +198,7 @@ const filteredInsights = insights.filter(insight => {
             selected={endDate} 
             onChange={(date: Date|null) => setEndDate(date)} 
             selectsEnd
+            popperPlacement="bottom-start"
             startDate={startDate}
             endDate={endDate}
             minDate={startDate || undefined}

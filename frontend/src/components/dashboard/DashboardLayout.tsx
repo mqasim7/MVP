@@ -56,7 +56,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             </label>
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-semibold">{ user!.companyName || 'Dashboard'}</h1>
+            <h1 className="text-xl font-semibold">{ user!.company_name}</h1>
           </div>
           <div className="flex-none gap-2">
             <div className="dropdown dropdown-end">
