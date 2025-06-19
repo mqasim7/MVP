@@ -10,6 +10,18 @@ import { getStoredUser } from '@/lib/auth';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
+const CustomInput = React.forwardRef(({ value, onClick,placeholderText }:any, ref:any) => (
+  <input
+    type="text"
+    className="input input-bordered w-full"
+    onClick={onClick}
+    value={value}
+    ref={ref}
+    readOnly
+    placeholder={placeholderText}
+  />
+));
+
 // Mock insights data
 // const mockInsights: Insight[] = [
 //   {
@@ -181,16 +193,16 @@ const filteredInsights = insights.filter(insight => {
         </div>
         <div className="flex gap-4 mt-4 md:mt-0">
         <div>
-          <DatePicker 
-            selected={startDate}  
-            onChange={(date: Date|null) => setStartDate(date)} 
-            selectsStart
-            popperPlacement="bottom-start"
-            startDate={startDate}
-            endDate={endDate}
-            className="input input-bordered w-full"
-            placeholderText="Select start date"
-          />
+        <DatePicker 
+          selected={startDate} 
+          onChange={(date: Date|null) => setStartDate(date)} 
+          selectsStart
+          startDate={startDate}
+          endDate={endDate}
+          popperPlacement="bottom-start"
+          closeOnScroll
+          customInput={<CustomInput placeholderText="Select start date"/>}
+        />
         </div>
 
         <div>
@@ -203,7 +215,8 @@ const filteredInsights = insights.filter(insight => {
             endDate={endDate}
             minDate={startDate || undefined}
             className="input input-bordered w-full"
-            placeholderText="Select end date"
+            closeOnScroll
+            customInput={<CustomInput placeholderText="Select end date"/>}
           />
         </div>
       </div>
