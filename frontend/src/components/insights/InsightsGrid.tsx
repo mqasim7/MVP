@@ -7,6 +7,8 @@ import { Insight } from '@/types/dashboard';
 import { useRouter } from 'next/navigation';
 import { insightsApi } from '@/lib/api';
 import { getStoredUser } from '@/lib/auth';
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 // Mock insights data
 // const mockInsights: Insight[] = [
@@ -81,6 +83,9 @@ const InsightsGrid: React.FC = () => {
   const [sortMenuOpen, setSortMenuOpen] = useState<boolean>(false);
   const router = useRouter();
   const user = getStoredUser();
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+
   // Fetch insights (commented out for mock data)
   useEffect(() => {
     
@@ -104,12 +109,23 @@ const InsightsGrid: React.FC = () => {
     // Using mock data for now
     // setInsights(mockInsights);
   }, []);
+
+  console.log(insights)
   
   // Filter insights based on search term
-  const filteredInsights = insights.filter(insight => 
+const filteredInsights = insights.filter(insight => {
+  const matchesSearch = 
     insight.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    insight.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    insight.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+  const insightDate = new Date(insight.date); // Convert ISO string to Date
+
+  const matchesDate = (!startDate || insightDate >= startDate) 
+    && (!endDate || insightDate <= endDate);
+
+  return matchesSearch && matchesDate;
+});
+
   
   // Handle insight card click
   const handleInsightClick = (id: number) => {
@@ -150,7 +166,7 @@ const InsightsGrid: React.FC = () => {
       </div>
       
       {/* Search and Filter Controls */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center flex-start gap-1">
         <div className="relative flex-1 max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search size={18} className="text-gray-400" />
@@ -163,6 +179,45 @@ const InsightsGrid: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <div className="flex gap-4 mt-4 md:mt-0">
+        <div>
+          <DatePicker 
+            selected={startDate} 
+            onChange={(date: Date|null) => setStartDate(date)} 
+            selectsStart
+            startDate={startDate}
+            endDate={endDate}
+            className="input input-bordered w-full"
+            placeholderText="Select start date"
+          />
+        </div>
+
+        <div>
+          <DatePicker 
+            selected={endDate} 
+            onChange={(date: Date|null) => setEndDate(date)} 
+            selectsEnd
+            startDate={startDate}
+            endDate={endDate}
+            minDate={startDate || undefined}
+            className="input input-bordered w-full"
+            placeholderText="Select end date"
+          />
+        </div>
+      </div>
+      <div className="md:ml-2">
+      <button 
+        className="btn btn-outline btn-sm w-full md:w-auto"
+        onClick={() => {
+          setStartDate(null);
+          setEndDate(null);
+          setSearchTerm('');
+        }}
+      >
+        Reset Filters
+      </button>
+    </div>
+
         
         {/* <div className="flex space-x-2">
           <div className="dropdown dropdown-end">
