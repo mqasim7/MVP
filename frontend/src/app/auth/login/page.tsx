@@ -5,12 +5,17 @@ import LoginForm from '@/components/auth/LoginForm';
 import { Metadata } from 'next';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { resetViewportZoom } from '@/lib/utils';
 
 
 export default function LoginPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
-
+    // Reset viewport zoom on mount (iOS Safari fix)
+    useEffect(() => {
+      resetViewportZoom();
+    }, []);
+    
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       if (user?.role === 'admin') {

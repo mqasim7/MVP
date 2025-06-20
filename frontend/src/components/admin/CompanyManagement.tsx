@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { companyApi } from '@/lib/api';
+import { resetViewportZoom } from '@/lib/utils';
 
 interface Company {
   id: number;
@@ -31,16 +32,6 @@ export default function CompanyManagement() {
 
   // Reset viewport zoom on mount (iOS Safari fix)
   useEffect(() => {
-    function resetViewportZoom() {
-      const viewport = document.querySelector('meta[name=viewport]');
-      if (viewport) {
-        (viewport as HTMLMetaElement).content = 'width=device-width, initial-scale=1';
-        setTimeout(() => {
-          (viewport as HTMLMetaElement).content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
-        }, 100);
-      }
-    }
-
     resetViewportZoom();
   }, []);
   

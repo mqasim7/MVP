@@ -8,6 +8,7 @@ import { FeedItem, Persona } from '@/types/dashboard';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { getStoredUser } from '@/lib/auth';
 import { contentApi, personaApi } from '@/lib/api';
+import { resetViewportZoom } from '@/lib/utils';
 
 interface PlatformFilters {
   [key: string]: boolean;
@@ -36,6 +37,11 @@ const FeedContainer: React.FC = () => {
 
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
   const user = getStoredUser();
+
+    // Reset viewport zoom on mount (iOS Safari fix)
+    useEffect(() => {
+      resetViewportZoom();
+    }, []);
 
   // Fetch personas on mount
   useEffect(() => {

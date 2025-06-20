@@ -85,3 +85,13 @@ export const formatNumber = (num: number | string): string => {
   export const generateId = (): string => {
     return Math.random().toString(36).substring(2, 15);
   };
+
+  export function resetViewportZoom() {
+    const viewport = document.querySelector('meta[name=viewport]');
+    if (viewport) {
+      (viewport as HTMLMetaElement).content = 'width=device-width, initial-scale=1';
+      setTimeout(() => {
+        (viewport as HTMLMetaElement).content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
+      }, 100);
+    }
+  }
