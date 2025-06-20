@@ -1,6 +1,6 @@
 // components/dashboard/DashboardHome.tsx
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart2, Users, Video, Clock, BarChart3,
   ArrowRight, ChevronDown, ArrowUpRight, 
@@ -13,6 +13,20 @@ const DashboardHome: React.FC = () => {
   const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month' | 'quarter' | 'year' | 'all'>('week');
   const [activeTab, setActiveTab] = useState<string>('overview');
   
+  // Reset viewport zoom on mount (iOS Safari fix)
+  useEffect(() => {
+    function resetViewportZoom() {
+      const viewport = document.querySelector('meta[name=viewport]');
+      if (viewport) {
+        (viewport as HTMLMetaElement).content = 'width=device-width, initial-scale=1';
+        setTimeout(() => {
+          (viewport as HTMLMetaElement).content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
+        }, 100);
+      }
+    }
+    resetViewportZoom();
+  }, []);
+
   // Demo data
   const kpiData = [
     { id: 1, name: 'Audience Growth', value: '+12.3%', trend: 'up', change: '+2.1%', icon: <Users size={20} /> },
