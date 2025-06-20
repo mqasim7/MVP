@@ -29,6 +29,21 @@ export default function CompanyManagement() {
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
+  // Reset viewport zoom on mount (iOS Safari fix)
+  useEffect(() => {
+    function resetViewportZoom() {
+      const viewport = document.querySelector('meta[name=viewport]');
+      if (viewport) {
+        (viewport as HTMLMetaElement).content = 'width=device-width, initial-scale=1';
+        setTimeout(() => {
+          (viewport as HTMLMetaElement).content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
+        }, 100);
+      }
+    }
+
+    resetViewportZoom();
+  }, []);
+  
   // Load companies
   useEffect(() => {
     loadCompanies();

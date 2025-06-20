@@ -12,20 +12,6 @@ import KpiCard from '@/components/dashboard/KpiCard';
 const DashboardHome: React.FC = () => {
   const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month' | 'quarter' | 'year' | 'all'>('week');
   const [activeTab, setActiveTab] = useState<string>('overview');
-  
-  // Reset viewport zoom on mount (iOS Safari fix)
-  useEffect(() => {
-    function resetViewportZoom() {
-      const viewport = document.querySelector('meta[name=viewport]');
-      if (viewport) {
-        (viewport as HTMLMetaElement).content = 'width=device-width, initial-scale=1';
-        setTimeout(() => {
-          (viewport as HTMLMetaElement).content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
-        }, 100);
-      }
-    }
-    resetViewportZoom();
-  }, []);
 
   // Demo data
   const kpiData = [
