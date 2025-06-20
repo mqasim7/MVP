@@ -106,7 +106,7 @@ const SimplifiedVideoPlayer: React.FC<VideoPlayerProps & { isActive: boolean }> 
               className="absolute inset-0 w-full h-full object-cover"
               playsInline
               loop
-              muted={muted}
+              muted={false}
               controls={false}
               autoPlay={isActive && autoplay}
               onPlay={() => setPlaying(true)}
