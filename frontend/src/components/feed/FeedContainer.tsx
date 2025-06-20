@@ -207,7 +207,7 @@ const FeedContainer: React.FC = () => {
   return (
     <div className="h-screen flex flex-col bg-white text-black relative">
       {!isManuallyHidden && (
-        <div className="absolute top-0 left-0 w-full z-10 bg-white/95 backdrop-blur-md shadow">
+        <div className="absolute top-0 left-0 w-full z-20 bg-white/95 backdrop-blur-md shadow">
           <div className="max-w-6xl mx-auto">
             <PersonaSelector
               value={selectedPersona}
