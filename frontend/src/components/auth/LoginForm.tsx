@@ -13,6 +13,10 @@ const LoginForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Blur the active element to close the keyboard and reset zoom
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     try {
       await login(email, password);
     } catch (err) {
@@ -54,7 +58,7 @@ const LoginForm: React.FC = () => {
               <input
                 type="email"
                 placeholder="your@email.com"
-                className="block w-full pl-10 pr-3 py-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-md focus:ring-1 focus:ring-[#EFFF00] focus:border-[#EFFF00] text-white placeholder-white/40"
+                className="block w-full pl-10 pr-3 py-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-md focus:ring-1 focus:ring-[#EFFF00] focus:border-[#EFFF00] text-white placeholder-white/40 text-base"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -77,7 +81,7 @@ const LoginForm: React.FC = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
-                className="block w-full pl-10 pr-10 py-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-md focus:ring-1 focus:ring-[#EFFF00] focus:border-[#EFFF00] text-white placeholder-white/40"
+                className="block w-full pl-10 pr-10 py-3 bg-[#1A1A1A] border border-[#2A2A2A] rounded-md focus:ring-1 focus:ring-[#EFFF00] focus:border-[#EFFF00] text-white placeholder-white/40 text-base"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
