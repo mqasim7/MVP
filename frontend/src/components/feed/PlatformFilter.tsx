@@ -3,7 +3,7 @@ import { PlatformFilterProps } from '@/types/dashboard';
 
 const PlatformFilter: React.FC<PlatformFilterProps> = ({ platforms, onChange }) => {
   return (
-    <div className="flex flex-wrap text-black justify-center gap-4 mb-8">
+    <div className="flex flex-wrap text-black justify-center gap-4 mb-8 mt-2">
       {Object.entries(platforms).map(([platform, isSelected]) => (
         <div className="form-control" key={platform}>
           <label className="label cursor-pointer gap-2">

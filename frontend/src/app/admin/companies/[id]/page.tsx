@@ -12,6 +12,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { companyApi, contentApi, userApi } from '@/lib/api';
+import CompanyUsersTable from './CompanyUsersTable';
+import CompanyContentTable from './CompanyContentTable';
+
 interface Company {
   id: number;
   name: string;
@@ -51,35 +54,6 @@ interface ContentItem {
   author_name?: string;
 }
 
-interface Company {
-  id: number;
-  name: string;
-  description?: string;
-  industry?: string;
-  website?: string;
-  logo_url?: string;
-  status: 'active' | 'inactive';
-  user_count: number;
-  created_at: string;
-  stats?: {
-    total_users: number;
-    active_users: number;
-    pending_users: number;
-    total_content: number;
-  };
-}
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  status: string;
-  department?: string;
-  last_login?: string;
-  created_at: string;
-}
-
 export default function CompanyDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -91,6 +65,10 @@ export default function CompanyDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [userPage, setUserPage] = useState(1);
+  const [userPageSize] = useState(5);
+  const [contentPage, setContentPage] = useState(1);
+  const [contentPageSize] = useState(5);
 
   useEffect(() => {
     loadCompanyData();
@@ -158,6 +136,12 @@ export default function CompanyDetailPage() {
     if (!dateTimeString) return 'Never';
     return new Date(dateTimeString).toLocaleDateString();
   };
+
+  const paginatedUsers = users.slice((userPage - 1) * userPageSize, userPage * userPageSize);
+  const totalUserPages = Math.ceil(users.length / userPageSize);
+
+  const paginatedContent = contentItems.slice((contentPage - 1) * contentPageSize, contentPage * contentPageSize);
+  const totalContentPages = Math.ceil(contentItems.length / contentPageSize);
 
   if (isLoading) {
     return (
@@ -357,97 +341,7 @@ export default function CompanyDetailPage() {
 
         {/* Users List */}
         <div className="lg:col-span-2">
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="card-title">Company Users ({users.length})</h2>
-                <button 
-                  className="btn btn-primary btn-sm"
-                  onClick={createUser}
-                >
-                  <Plus size={14} />
-                  Add User
-                </button>
-              </div>
-              
-              {users.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="table table-zebra">
-                    <thead>
-                      <tr>
-                        <th>User</th>
-                        <th>Role</th>
-                        <th>Department</th>
-                        <th>Status</th>
-                        <th>Last Login</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((user) => (
-                        <tr key={user.id}>
-                          <td>
-                            <div>
-                              <div className="font-bold">{user.name}</div>
-                              <div className="text-sm opacity-50">{user.email}</div>
-                            </div>
-                          </td>
-                          <td>
-                            <span className={`badge ${
-                              user.role === 'admin' ? 'badge-primary' :
-                              user.role === 'editor' ? 'badge-secondary' :
-                              'badge-ghost'
-                            }`}>
-                              {user.role}
-                            </span>
-                          </td>
-                          <td>{user.department || '-'}</td>
-                          <td>
-                            <div className={`badge ${
-                              user.status === 'active' ? 'badge-success' : 
-                              user.status === 'pending' ? 'badge-warning' : 'badge-ghost'
-                            }`}>
-                              {user.status}
-                            </div>
-                          </td>
-                          <td className="text-sm">
-                            {formatDateTime(user.last_login)}
-                          </td>
-                          <td>
-                            <div className="dropdown dropdown-end">
-                              <div tabIndex={0} role="button" className="btn btn-ghost btn-sm">
-                                <MoreVertical size={16} />
-                              </div>
-                              <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                <li>
-                                  <Link href={`/admin/users/${user.id}/edit?companyId=${companyId}`}>
-                                    <Edit size={14} className="mr-2" /> Edit User
-                                  </Link>
-                                </li>
-                                <li><a className="text-error">Remove from Company</a></li>
-                              </ul>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Users size={48} className="mx-auto opacity-20 mb-4" />
-                  <h3 className="font-semibold mb-2">No users yet</h3>
-                  <p className="text-base-content/70 mb-4">
-                    Start by adding users to this company
-                  </p>
-                  <Link href={`/admin/users/new`} className="btn btn-primary">
-                    <Plus size={16} className="mr-2" />
-                    Add First User
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
+          <CompanyUsersTable users={users} companyId={companyId} createUser={createUser} />
         </div>
       </div>
 
@@ -473,65 +367,7 @@ export default function CompanyDetailPage() {
       </div>
 
       {/* --- Company Content List Section --- */}
-      <div className="card bg-base-100 shadow-xl mt-6">
-        <div className="card-body">
-        <div className="flex flex-col lg:flex-row justify-between mb-8">
-        <div>
-          <h2 className="card-title mb-4">Company Content List</h2>
-        </div>
-        <Link href={`/admin/content/new?companyId=${companyId}`} className="btn btn-primary mt-4 lg:mt-0">
-          <Plus size={16} /> Add New Content
-        </Link>
-      </div>
-          {contentItems.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="table table-zebra">
-                <thead>
-                  <tr>
-                    <th>Title</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Author</th>
-                    <th>Date</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contentItems.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.title}</td>
-                      <td className="capitalize">{item.type}</td>
-                      <td>
-                        <span className={`badge ${
-                          item.status === 'published' ? 'badge-success' :
-                          item.status === 'draft' ? 'badge-warning' :
-                          item.status === 'scheduled' ? 'badge-info' :
-                          'badge-ghost'
-                        }`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td>{item.author_name || 'Unknown'}</td>
-                      <td>{formatDate(item.created_at)}</td>
-                      <td>
-                        <Link href={`/admin/content/${item.id}?companyId=${companyId}`} className="btn btn-sm btn-ghost">
-                          <Eye size={14} className="mr-1" /> View
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <FileText size={48} className="mx-auto opacity-20 mb-4" />
-              <h3 className="font-semibold mb-2">No content available</h3>
-              <p className="text-base-content/70">This company hasn't created any content yet.</p>
-            </div>
-          )}
-        </div>
-      </div>
+      <CompanyContentTable contentItems={contentItems} companyId={companyId} />
     </div>
   );
 }
