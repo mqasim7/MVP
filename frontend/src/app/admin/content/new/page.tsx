@@ -108,6 +108,21 @@ export default function ContentCreationPage() {
     return items;
   };
 
+  // Converts Excel serial date to JS Date
+  const excelDateToJSDate = (serial: number) => {
+    const utc_days = Math.floor(serial - 25569);
+    const utc_value = utc_days * 86400;
+    const date_info = new Date(utc_value * 1000);
+    return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate());
+  };
+
+  const formatDateMMDDYYYY = (date: Date) => {
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
+  };
+
   const parseExcel = (file: File): Promise<BulkItem[]> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -139,10 +154,16 @@ export default function ContentCreationPage() {
               if (!row[0] || !row[1] || !row[2]) {
                 throw new Error(`Invalid row at line ${index + 2}`);
               }
+              let publishDate = row[2];
+              if (typeof publishDate === "number") {
+                publishDate = formatDateMMDDYYYY(excelDateToJSDate(publishDate));
+              } else {
+                publishDate = publishDate.toString();
+              }
               return {
                 title: row[0].toString(),
                 url: row[1].toString(),
-                publishDate: row[2].toString(),
+                publishDate,
               };
             });
 
@@ -159,7 +180,10 @@ export default function ContentCreationPage() {
 
   const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      setBulkItems([]);
+      return
+    };
   
     setbulkErrors(null);
     setBulkItems([]);
@@ -177,12 +201,24 @@ export default function ContentCreationPage() {
             parsed = parseCSV(text);
   
             const invalidDateRow = parsed.find(item => {
-              const date = item.publishDate?.trim(); // Trim to avoid accidental spaces
-              return !moment(date, 'MM/DD/YYYY', true).isValid();
+              let date = item.publishDate || '';
+              // Normalize: trim, remove \r, non-breaking spaces, etc.
+              date = date.trim().replace(/\r/g, '').replace(/\u00A0/g, '');
+              // Strict MM/DD/YYYY: month 1-12, day 1-31, year 4 digits
+              const regex = /^(0?[1-9]|1[0-2])\/(0?[1-9]|[12][0-9]|3[01])\/\d{4}$/;
+              const regexTest = regex.test(date);
+              const momentTest = moment(date, ['M/D/YYYY', 'MM/DD/YYYY'], true).isValid();
+              if (!regexTest || !momentTest) {
+                // Log char codes for debugging
+                const charCodes = Array.from(date as string).map((c: string) => c.charCodeAt(0));
+                console.log('Date:', date, 'CharCodes:', charCodes, 'Regex:', regexTest, 'Moment:', momentTest);
+              }
+              if (!regexTest) return true;
+              return !momentTest;
             });
   
             if (invalidDateRow) {
-              setbulkErrors(`Invalid date format found. Dates must be in MM/DD/YYYY format. Example: 8/17/2025`);
+              setbulkErrors(`Invalid date format found. Dates must be in MM/DD/YYYY format and valid. Example: 8/17/2025`);
               return; // don't continue if error found
             }
   
@@ -197,8 +233,20 @@ export default function ContentCreationPage() {
         parsed = await parseExcel(file);
   
         const invalidDateRow = parsed.find(item => {
-          const date = item.publishDate?.trim();
-          return !moment(date, 'MM/DD/YYYY', true).isValid();
+          let date = item.publishDate || '';
+          // Normalize: trim, remove \r, non-breaking spaces, etc.
+          date = date.trim().replace(/\r/g, '').replace(/\u00A0/g, '');
+          // Strict MM/DD/YYYY: month 1-12, day 1-31, year 4 digits
+          const regex = /^(0?[1-9]|1[0-2])\/(0?[1-9]|[12][0-9]|3[01])\/\d{4}$/;
+          const regexTest = regex.test(date);
+          const momentTest = moment(date, ['M/D/YYYY', 'MM/DD/YYYY'], true).isValid();
+          if (!regexTest || !momentTest) {
+            // Log char codes for debugging
+            const charCodes = Array.from(date as string).map((c: string) => c.charCodeAt(0));
+            console.log('Date:', date, 'CharCodes:', charCodes, 'Regex:', regexTest, 'Moment:', momentTest);
+          }
+          if (!regexTest) return true;
+          return !momentTest;
         });
   
         if (invalidDateRow) {
@@ -671,7 +719,7 @@ export default function ContentCreationPage() {
                   <strong>Title, URL, Publish Date (format: MM/DD/YYYY)</strong>
                 </p>
 
-                {bulkItems.length > 0 && (
+                {bulkItems.length > 0 ? (
                   <div className="mt-4">
                     <h4 className="font-semibold mb-2">
                       Preview ({bulkItems.length} items):
@@ -684,7 +732,7 @@ export default function ContentCreationPage() {
                       ))}
                     </div>
                   </div>
-                )}
+                ): null}
               </div>
               {bulkErrors ? (
                 <div className="alert alert-error mb-4">{bulkErrors}</div>
