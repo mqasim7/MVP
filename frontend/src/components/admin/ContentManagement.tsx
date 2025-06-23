@@ -41,12 +41,14 @@ export default function ContentManagement() {
   const [selectedType, setSelectedType] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [sortField, setSortField] = useState('created_at');
-  const [sortDirection, setSortDirection] = useState('desc');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [selectedPersona, setSelectedPersona] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
 
   useEffect(() => {
     loadContent();
@@ -81,18 +83,28 @@ export default function ContentManagement() {
 
       return matchesPersona && matchesSearch && matchesType && matchesStatus;
     })
-    .sort((a: any, b: any) => {
-      let fieldA = a[sortField];
-      let fieldB = b[sortField];
-
-      if (typeof fieldA === 'string') {
-        fieldA = fieldA.toLowerCase();
-        fieldB = fieldB.toLowerCase();
+    .sort((a, b) => {
+      const aValue = a[sortField as keyof ContentItem];
+      const bValue = b[sortField as keyof ContentItem];
+      
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortDirection === 'asc' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
       }
-
-      if (sortDirection === 'asc') return fieldA > fieldB ? 1 : -1;
-      else return fieldA < fieldB ? 1 : -1;
+      
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+      
+      return 0;
     });
+
+  const totalPages = Math.ceil(filteredContent.length / pageSize);
+  const paginatedContent = filteredContent.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   const handleSort = (field: string) => {
     if (field === sortField) {
@@ -260,7 +272,7 @@ export default function ContentManagement() {
               </tr>
             </thead>
             <tbody>
-              {filteredContent.length > 0 ? filteredContent.map(item => (
+              {paginatedContent.length > 0 ? paginatedContent.map(item => (
                 <tr key={item.id}>
                   <td>
                     <div className="flex items-center gap-2">
@@ -299,6 +311,34 @@ export default function ContentManagement() {
             </tbody>
           </table>
         </div>
+        
+        {filteredContent.length > pageSize && (
+          <div className="flex flex-wrap justify-center items-center mt-4 gap-2 w-full sm:flex-row flex-col p-4">
+            <button 
+              className="btn btn-sm w-full sm:w-auto" 
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))} 
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                className={`btn btn-sm w-full sm:w-auto ${currentPage === i + 1 ? 'btn-primary' : 'btn-ghost'}`}
+                onClick={() => setCurrentPage(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button 
+              className="btn btn-sm w-full sm:w-auto" 
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} 
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
     </div>
