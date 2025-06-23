@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, FileText, Save, Building2, Tag, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { insightsApi, companyApi } from '@/lib/api';
@@ -34,6 +34,8 @@ interface Company {
 
 export default function NewInsightPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const companyId = searchParams.get('companyId');
   const [isLoading, setIsLoading] = useState(false);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
@@ -74,6 +76,11 @@ export default function NewInsightPage() {
 
     loadCompanies();
   }, []);
+
+  // Set company_id in formData if companyId is present in URL
+  useEffect(() => {
+    if (companyId) setFormData((prev) => ({ ...prev, company_id: companyId }));
+  }, [companyId]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -203,8 +210,9 @@ export default function NewInsightPage() {
       // Show success message
       alert(`Insight "${formData.title}" created successfully!`);
       
-      // Redirect to insights management page
-      router.push('/admin/insights');
+      // Redirect to company insights or general insights
+      if (companyId) router.push(`/admin/companies/${companyId}`);
+      else router.push('/admin/insights');
     } catch (error: any) {
       console.error('Error creating insight:', error);
       
@@ -233,9 +241,9 @@ export default function NewInsightPage() {
     <div className="container mx-auto max-w-4xl">
       {/* Header */}
       <div className="flex items-center mb-8">
-        <Link href="/admin/insights" className="btn btn-ghost btn-sm mr-4">
+        <Link href={companyId ? `/admin/companies/${companyId}` : "/admin/insights"}  className="btn btn-ghost btn-sm mr-4">
           <ArrowLeft size={16} />
-          Back to Insights
+          {companyId ? `Back to Company` : `Back to Insights`}
         </Link>
         <div className="flex items-center">
           <div className="bg-primary text-primary-content p-3 rounded-full mr-4">
@@ -308,36 +316,38 @@ export default function NewInsightPage() {
               </div>
 
               {/* Company Selection */}
-              <div className="form-control w-full mt-6">
-                <label className="label">
-                  <span className="label-text font-medium">Company *</span>
-                </label>
-                <div className="input-group">
-                  <select
-                    className={`select select-bordered w-full ${errors.company_id ? 'select-error' : ''}`}
-                    value={formData.company_id}
-                    onChange={(e) => handleInputChange('company_id', e.target.value)}
-                    disabled={isLoading || loadingCompanies}
-                  >
-                    <option value="">
-                      {loadingCompanies ? 'Loading companies...' : 'Select a company'}
-                    </option>
-                    {companies.map((company) => (
-                      <option key={company.id} value={company.id.toString()}>
-                        {company.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {errors.company_id && (
+              {!companyId && (
+                <div className="form-control w-full mt-6">
                   <label className="label">
-                    <span className="label-text-alt text-error">{errors.company_id}</span>
+                    <span className="label-text font-medium">Company *</span>
                   </label>
-                )}
-                <label className="label">
-                  <span className="label-text-alt">This insight will be associated with the selected company</span>
-                </label>
-              </div>
+                  <div className="input-group">
+                    <select
+                      className={`select select-bordered w-full ${errors.company_id ? 'select-error' : ''}`}
+                      value={formData.company_id}
+                      onChange={(e) => handleInputChange('company_id', e.target.value)}
+                      disabled={isLoading || loadingCompanies}
+                    >
+                      <option value="">
+                        {loadingCompanies ? 'Loading companies...' : 'Select a company'}
+                      </option>
+                      {companies.map((company) => (
+                        <option key={company.id} value={company.id.toString()}>
+                          {company.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {errors.company_id && (
+                    <label className="label">
+                      <span className="label-text-alt text-error">{errors.company_id}</span>
+                    </label>
+                  )}
+                  <label className="label">
+                    <span className="label-text-alt">This insight will be associated with the selected company</span>
+                  </label>
+                </div>
+              )}
 
               {/* Description */}
               <div className="form-control w-full mt-6">
@@ -620,7 +630,7 @@ export default function NewInsightPage() {
             {/* Actions */}
             <div className="card-actions justify-end pt-6 border-t border-base-300">
               <Link 
-                href="/admin/insights" 
+                href={companyId ? `/admin/companies/${companyId}` : "/admin/insights"} 
                 className="btn btn-ghost" 
                 onClick={(e) => isLoading && e.preventDefault()}
               >

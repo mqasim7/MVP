@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { 
   FileText, Edit, ArrowLeft, Eye, Calendar, 
   BarChart2, Users, CheckCircle, Clock, Tag,
@@ -35,6 +35,8 @@ interface Insight {
 export default function ViewInsightPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const companyId = searchParams.get('companyId');
   const insightId = parseInt(params.id as string);
 
   const [insight, setInsight] = useState<Insight | null>(null);
@@ -129,8 +131,8 @@ export default function ViewInsightPage() {
             <button onClick={() => window.location.reload()} className="btn btn-primary">
               Retry
             </button>
-            <Link href="/admin/insights" className="btn btn-ghost">
-              Back to Insights
+            <Link href={companyId ? `/admin/companies/${companyId}` : "/admin/insights"} className="btn btn-ghost">
+            {companyId ? `Back to Company` : `Back to Insights`}
             </Link>
           </div>
         </div>
@@ -143,8 +145,8 @@ export default function ViewInsightPage() {
       <div className="container mx-auto py-10">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Insight Not Found</h1>
-          <Link href="/admin/insights" className="btn btn-primary">
-            Back to Insights
+          <Link href={companyId ? `/admin/companies/${companyId}` : "/admin/insights"} className="btn btn-primary">
+          {companyId ? `Back to Company` : `Back to Insights`}
           </Link>
         </div>
       </div>
@@ -156,9 +158,9 @@ export default function ViewInsightPage() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8">
         <div className="flex items-center">
-          <Link href="/admin/insights" className="btn btn-ghost btn-sm mr-4">
+          <Link href={companyId ? `/admin/companies/${companyId}` : "/admin/insights"} className="btn btn-ghost btn-sm mr-4">
             <ArrowLeft size={16} />
-            Back to Insights
+            {companyId ? `Back to Company` : `Back to Insights`}
           </Link>
           <div className="flex items-center">
             <div className="bg-primary text-primary-content p-3 rounded-full mr-4">
@@ -182,7 +184,7 @@ export default function ViewInsightPage() {
           </div>
         </div>
         <div className="flex gap-2 mt-4 lg:mt-0">
-          <Link href={`/admin/insights/${insight.id}/edit`} className="btn btn-primary">
+          <Link href={`/admin/insights/${insight.id}/edit${companyId ? `?companyId=${companyId}` : ''}`} className="btn btn-primary">
             <Edit size={16} />
             Edit Insight
           </Link>
@@ -425,7 +427,7 @@ export default function ViewInsightPage() {
               <h3 className="card-title mb-4">Actions</h3>
               <div className="space-y-3">
                 <Link 
-                  href={`/admin/insights/${insight.id}/edit`} 
+                  href={`/admin/insights/${insight.id}/edit${companyId ? `?companyId=${companyId}` : ''}`} 
                   className="btn btn-outline btn-sm w-full"
                 >
                   <Edit size={16} />
@@ -445,7 +447,7 @@ export default function ViewInsightPage() {
                 </button>
 
                 <Link 
-                  href="/admin/insights/new" 
+                  href={`/admin/insights/new${companyId ? `?companyId=${companyId}` : ''}`} 
                   className="btn btn-ghost btn-sm w-full"
                 >
                   <BookOpen size={16} />

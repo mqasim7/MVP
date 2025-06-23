@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { ArrowLeft, FileText, Save, Trash2, AlertCircle, Tag, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { insightsApi, companyApi } from '@/lib/api';
@@ -54,7 +54,9 @@ interface Company {
 export default function EditInsightPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const insightId = parseInt(params.id as string);
+  const companyId = searchParams.get('companyId');
 
   const [insight, setInsight] = useState<Insight | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -124,6 +126,11 @@ export default function EditInsightPage() {
 
     loadData();
   }, [insightId]);
+
+  // Set company_id in formData if companyId is present in URL
+  useEffect(() => {
+    if (companyId) setFormData((prev) => ({ ...prev, company_id: companyId }));
+  }, [companyId]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -244,7 +251,8 @@ export default function EditInsightPage() {
       });
       
       alert('Insight updated successfully!');
-      router.push(`/admin/insights/${insightId}`);
+      if (companyId) router.push(`/admin/companies/${companyId}`);
+      else router.push(`/admin/insights/${insightId}`);
     } catch (error: any) {
       console.error('Error updating insight:', error);
       
@@ -275,7 +283,8 @@ export default function EditInsightPage() {
     try {
       await insightsApi.delete(insightId);
       alert('Insight deleted successfully!');
-      router.push('/admin/insights');
+      if (companyId) router.push(`/admin/companies/${companyId}`);
+      else router.push('/admin/insights');
     } catch (error: any) {
       console.error('Error deleting insight:', error);
       alert(error.response?.data?.message || 'Failed to delete insight. Please try again.');
@@ -310,8 +319,8 @@ export default function EditInsightPage() {
             <button onClick={() => window.location.reload()} className="btn btn-primary">
               Retry
             </button>
-            <Link href="/admin/insights" className="btn btn-ghost">
-              Back to Insights
+            <Link href={companyId ? `/admin/companies/${companyId}` : "/admin/insights"} className="btn btn-ghost">
+              {companyId ? `Back to Company` : `Back to Insights`}
             </Link>
           </div>
         </div>
@@ -324,8 +333,8 @@ export default function EditInsightPage() {
       <div className="container mx-auto py-10">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Insight Not Found</h1>
-          <Link href="/admin/insights" className="btn btn-primary">
-            Back to Insights
+          <Link href={companyId ? `/admin/companies/${companyId}` : "/admin/insights"} className="btn btn-primary">
+            {companyId ? `Back to Company` : `Back to Insights`}
           </Link>
         </div>
       </div>
@@ -339,7 +348,7 @@ export default function EditInsightPage() {
         <div className="flex items-center">
           <Link href={`/admin/insights/${insightId}`} className="btn btn-ghost btn-sm mr-4">
             <ArrowLeft size={16} />
-            Back to Insight
+            {companyId ? `Back to Company` : `Back to Insights`}
           </Link>
           <div className="flex items-center">
             <div className="bg-primary text-primary-content p-3 rounded-full mr-4">
@@ -451,24 +460,26 @@ export default function EditInsightPage() {
               </div>
 
               {/* Company Selection */}
-              <div className="form-control w-full mt-6">
-                <label className="label">
-                  <span className="label-text font-medium">Company</span>
-                </label>
-                <select
-                  className="select select-bordered w-full"
-                  value={formData.company_id}
-                  onChange={(e) => handleInputChange('company_id', e.target.value)}
-                  disabled={isSaving || loadingCompanies}
-                >
-                  <option value="">No company assigned</option>
-                  {companies.map((company) => (
-                    <option key={company.id} value={company.id.toString()}>
-                      {company.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {!companyId && (
+                <div className="form-control w-full mt-6">
+                  <label className="label">
+                    <span className="label-text font-medium">Company</span>
+                  </label>
+                  <select
+                    className="select select-bordered w-full"
+                    value={formData.company_id}
+                    onChange={(e) => handleInputChange('company_id', e.target.value)}
+                    disabled={isSaving || loadingCompanies}
+                  >
+                    <option value="">No company assigned</option>
+                    {companies.map((company) => (
+                      <option key={company.id} value={company.id.toString()}>
+                        {company.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* Description */}
               <div className="form-control w-full mt-6">
@@ -751,7 +762,7 @@ export default function EditInsightPage() {
             {/* Actions */}
             <div className="card-actions justify-end pt-6 border-t border-base-300">
               <Link 
-                href={`/admin/insights/${insightId}`} 
+                href={companyId ? `/admin/companies/${companyId}` : `/admin/insights/${insightId}`} 
                 className="btn btn-ghost" 
                 onClick={(e) => isSaving && e.preventDefault()}
               >

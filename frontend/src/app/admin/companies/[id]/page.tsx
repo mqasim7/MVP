@@ -11,9 +11,10 @@ import {
   Eye
 } from 'lucide-react';
 import Link from 'next/link';
-import { companyApi, contentApi, userApi } from '@/lib/api';
+import { companyApi, contentApi, userApi, insightsApi } from '@/lib/api';
 import CompanyUsersTable from './CompanyUsersTable';
 import CompanyContentTable from './CompanyContentTable';
+import CompanyInsightsTable from './CompanyInsightsTable';
 
 interface Company {
   id: number;
@@ -69,9 +70,11 @@ export default function CompanyDetailPage() {
   const [userPageSize] = useState(5);
   const [contentPage, setContentPage] = useState(1);
   const [contentPageSize] = useState(5);
+  const [insights, setInsights] = useState([]);
 
   useEffect(() => {
     loadCompanyData();
+    loadInsights();
   }, [companyId]);
 
   const loadCompanyData = async () => {
@@ -93,6 +96,15 @@ export default function CompanyDetailPage() {
       setError(error.response?.data?.message || 'Failed to load company data');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadInsights = async () => {
+    try {
+      const response = await insightsApi.getAll();
+      setInsights(response || []);
+    } catch (error) {
+      console.error('Error loading insights:', error);
     }
   };
 
@@ -368,6 +380,7 @@ export default function CompanyDetailPage() {
 
       {/* --- Company Content List Section --- */}
       <CompanyContentTable contentItems={contentItems} companyId={companyId} />
+      <CompanyInsightsTable insights={insights} companyId={companyId} />
     </div>
   );
 }
