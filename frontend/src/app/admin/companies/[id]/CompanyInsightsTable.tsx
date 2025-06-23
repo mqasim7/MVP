@@ -132,18 +132,18 @@ export default function CompanyInsightsTable({ insights, companyId, onDelete }: 
                         </div>
                     )}
                     {filteredInsights.length > insightPageSize && (
-                        <div className="flex justify-center mt-4 gap-2">
-                            <button className="btn btn-sm" onClick={() => setInsightPage(p => Math.max(1, p - 1))} disabled={insightPage === 1}>Previous</button>
+                        <div className="flex flex-wrap justify-center items-center mt-4 gap-2 w-full sm:flex-row flex-col">
+                            <button className="btn btn-sm w-full sm:w-auto" onClick={() => setInsightPage(p => Math.max(1, p - 1))} disabled={insightPage === 1}>Previous</button>
                             {Array.from({ length: totalInsightPages }, (_, i) => (
                                 <button
                                     key={i}
-                                    className={`btn btn-sm ${insightPage === i + 1 ? 'btn-primary' : 'btn-ghost'}`}
+                                    className={`btn btn-sm w-full sm:w-auto ${insightPage === i + 1 ? 'btn-primary' : 'btn-ghost'}`}
                                     onClick={() => setInsightPage(i + 1)}
                                 >
                                     {i + 1}
                                 </button>
                             ))}
-                            <button className="btn btn-sm" onClick={() => setInsightPage(p => Math.min(totalInsightPages, p + 1))} disabled={insightPage === totalInsightPages}>Next</button>
+                            <button className="btn btn-sm w-full sm:w-auto" onClick={() => setInsightPage(p => Math.min(totalInsightPages, p + 1))} disabled={insightPage === totalInsightPages}>Next</button>
                         </div>
                     )}
                 </div>

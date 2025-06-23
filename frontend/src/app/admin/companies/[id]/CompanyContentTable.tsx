@@ -84,18 +84,18 @@ export default function CompanyContentTable({ contentItems, companyId }: Props) 
           </div>
         )}
         {contentItems.length > contentPageSize && (
-          <div className="flex justify-center mt-4 gap-2">
-            <button className="btn btn-sm" onClick={() => setContentPage(p => Math.max(1, p - 1))} disabled={contentPage === 1}>Previous</button>
+          <div className="flex flex-wrap justify-center items-center mt-4 gap-2 w-full sm:flex-row flex-col">
+            <button className="btn btn-sm w-full sm:w-auto" onClick={() => setContentPage(p => Math.max(1, p - 1))} disabled={contentPage === 1}>Previous</button>
             {Array.from({ length: totalContentPages }, (_, i) => (
               <button
                 key={i}
-                className={`btn btn-sm ${contentPage === i + 1 ? 'btn-primary' : 'btn-ghost'}`}
+                className={`btn btn-sm w-full sm:w-auto ${contentPage === i + 1 ? 'btn-primary' : 'btn-ghost'}`}
                 onClick={() => setContentPage(i + 1)}
               >
                 {i + 1}
               </button>
             ))}
-            <button className="btn btn-sm" onClick={() => setContentPage(p => Math.min(totalContentPages, p + 1))} disabled={contentPage === totalContentPages}>Next</button>
+            <button className="btn btn-sm w-full sm:w-auto" onClick={() => setContentPage(p => Math.min(totalContentPages, p + 1))} disabled={contentPage === totalContentPages}>Next</button>
           </div>
         )}
       </div>
