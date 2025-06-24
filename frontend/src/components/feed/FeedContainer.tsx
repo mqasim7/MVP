@@ -205,7 +205,7 @@ const FeedContainer: React.FC = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-white text-black relative">
+    <div className="h-[calc(100vh-7rem)] flex flex-col bg-white text-black relative">
       {!isManuallyHidden && (
         <div className="absolute top-0 left-0 w-full z-20 bg-white/95 backdrop-blur-md shadow">
           <div className="max-w-6xl mx-auto">
@@ -246,7 +246,7 @@ const FeedContainer: React.FC = () => {
               filteredItems.map((item, idx) => (
                 <div
                   key={item.id}
-                  className="h-screen flex items-center justify-center snap-start"
+                  className="h-full flex items-center justify-center snap-start"
                   ref={el => { itemRefs.current[idx] = el; }}
                 >
                   <div className="w-full max-w-[360px] aspect-[9/16] mx-auto bg-black rounded-lg overflow-hidden shadow-lg">
