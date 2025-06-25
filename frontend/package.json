@@ -27,6 +27,7 @@
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
     "react-social-media-embed": "^2.5.18",
+    "react-window": "^1.8.11",
     "recharts": "^2.15.3",
     "xlsx": "^0.18.5"
   },
@@ -36,6 +37,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-window": "^1.8.8",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
     "tailwindcss": "^4.1.7",
