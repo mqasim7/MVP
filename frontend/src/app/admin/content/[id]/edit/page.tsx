@@ -6,6 +6,7 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { ArrowLeft, FileText, Save, Trash2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { contentApi, companyApi, personaApi } from '@/lib/api';
+import { getStoredUser } from '@/lib/auth';
 
 interface ContentItem {
   id: number;
@@ -90,7 +91,7 @@ export default function EditContentPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const searchParams = useSearchParams();
   const companyId = searchParams.get('companyId');  
-
+  const user = getStoredUser();
 
   // Load content and related data
   useEffect(() => {
@@ -235,11 +236,14 @@ export default function EditContentPage() {
         personas: formData.persona_ids.map(id => parseInt(id)),
         scheduled_date: formData.scheduled_date || undefined,
         company_id: formData.company_id ? parseInt(formData.company_id) : undefined,
-        platforms: [Number(formData.platforms)]
+        platforms: [Number(formData.platforms)],
+        userId: user?.id
       });
       
       alert('Content updated successfully!');
-      router.push(`/admin/content/${contentId}`);
+      if (companyId) router.push(`/admin/companies/${companyId}`);
+      else router.push("/admin/content");
+      // router.push(`/admin/content/${contentId}`);
     } catch (error: any) {
       console.error('Error updating content:', error);
       

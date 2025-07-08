@@ -4,8 +4,8 @@ const Content = {
   create: async (content) => {
     const sql = `
       INSERT INTO content 
-      (title, description, type, status, content_url, thumbnail_url, company_id, scheduled_date)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (title, description, type, status, content_url, thumbnail_url, author_id, company_id, scheduled_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
     const params = [
@@ -15,6 +15,7 @@ const Content = {
       content.status || 'draft',
       content.content_url,
       content.thumbnail_url,
+      content.author_id || null,
       content.company_id,
       content.scheduled_date
     ];

@@ -75,6 +75,7 @@ exports.bulkCreateContent = async (req, res) => {
     // 2. attach author_id to each item
     const items = req.body.contents.map(item => ({
       ...item,
+      author_id: req.userId,
       company_id: item.company_id,
     }));
 
@@ -116,7 +117,8 @@ exports.updateContent = async (req, res) => {
       scheduled_date: req.body.scheduled_date,
       personas: req.body.personas,
       platforms: req.body.platforms,
-      company_id: req.body.company_id
+      company_id: req.body.company_id,
+      author_id: req.userId
     });
     
     // Fetch updated content

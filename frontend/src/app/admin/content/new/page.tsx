@@ -8,6 +8,7 @@ import { ArrowLeft, Building2, Save } from "lucide-react";
 import { contentApi, companyApi, personaApi } from "@/lib/api";
 import * as XLSX from "xlsx";
 import moment from 'moment';
+import { getStoredUser } from "@/lib/auth";
 
 interface ContentFormData {
   title: string;
@@ -71,6 +72,7 @@ export default function ContentCreationPage() {
   });
   const [bulkItems, setBulkItems] = useState<BulkItem[]>([]);
   const [bulkErrors, setbulkErrors] = useState<string | null>(null);
+  const user = getStoredUser();
 
   useEffect(() => {
     setErrors({});
@@ -488,7 +490,8 @@ export default function ContentCreationPage() {
         url: formData.url.trim(),
         company_id: formData.company_id,
         content_url: formData.url,
-        platforms: [Number(formData.platforms)]
+        platforms: [Number(formData.platforms)],
+        userId: user?.id
       };
       const response = await contentApi.create(payload);
 
