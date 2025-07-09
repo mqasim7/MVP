@@ -721,6 +721,14 @@ export default function ContentCreationPage() {
                   File must have headers:{" "}
                   <strong>Title, URL, Publish Date (format: MM/DD/YYYY)</strong>
                 </p>
+                 {/* Download sample Excel link */}
+                  <a
+                    href="/SampleUploadSheet.xlsx"
+                    download
+                    className="underline text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                  >
+                    Download Sample Excel Sheet
+                  </a>
 
                 {bulkItems.length > 0 ? (
                   <div className="mt-4">
